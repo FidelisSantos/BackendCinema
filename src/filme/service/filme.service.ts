@@ -30,7 +30,7 @@ export class FilmeService {
     filme.descricao = createFilme.descricao;
     filme.linkImagem = createFilme.linkImagem;
     filme.tempoDeFilme = createFilme.tempoDeFilme;
-    filme.tags = createFilme.tags;
+    filme.tags = createFilme.tags.join(', ');
     return await this.repository.create(filme);
   }
 
@@ -55,7 +55,7 @@ export class FilmeService {
         filmeUpdate.tempoDeFilme = updateFilme.tempoDeFilme;
       else throw new HttpException('Invalid Time', HttpStatus.BAD_REQUEST);
     }
-    if (updateFilme.tags) filmeUpdate.tags = updateFilme.tags;
+    if (updateFilme.tags) filmeUpdate.tags = updateFilme.tags.join(', ');
     return await this.repository.update(filme, filmeUpdate);
   }
 

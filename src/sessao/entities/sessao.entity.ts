@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Sala } from '../../sala/entities/sala.entity';
 import { Filme } from '../../filme/entities/filme.entity';
+import { StatusSessaoEnum } from '../enum/status-sessao.enum';
 
 @Entity()
 export class Sessao {
@@ -30,4 +31,7 @@ export class Sessao {
 
   @Column({ nullable: false })
   finish: Date;
+
+  @Column({ nullable: false, default: StatusSessaoEnum.WAITING })
+  status: StatusSessaoEnum;
 }

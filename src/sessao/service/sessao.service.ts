@@ -6,7 +6,10 @@ import { Sessao } from '../entities/sessao.entity';
 import { FilmeService } from 'src/filme/service/filme.service';
 import { SalaService } from 'src/sala/service/sala.service';
 import { Sala } from 'src/sala/entities/sala.entity';
-import { StatusEnum } from 'src/sala/enum/status.Enum';
+import { FilmeSessao } from '../types/filmeSessao';
+import { SessaoType } from '../types/SessaoType';
+import { StatusSalaEnum } from '../../sala/enum/status-sala.enum';
+import { StatusSessaoEnum } from '../enum/status-sessao.enum';
 
 @Injectable()
 export class SessaoService {
@@ -15,60 +18,49 @@ export class SessaoService {
     private filmeService: FilmeService,
     private repository: SessaoRepositoryService,
   ) {
-    this.updateStatus();
+    this.updateStatusSalaSessao();
   }
 
-  async updateStatus() {
+  async updateStatusSalaSessao() {
     const sessoes = await this.findAll();
+    console.log('rodei');
     sessoes.forEach(async (sessao) => {
       const today = new Date(Date.now());
-      const dateInit = sessao.init;
-      const dateFinish = sessao.finish;
       const maintenance = new Date(sessao.finish.getTime() + 1800 * 1000);
-      console.log(today);
-      console.log(dateInit);
-      console.log(dateFinish);
-      console.log(maintenance);
-      if (dateInit <= today && dateFinish >= today) {
-        console.log('Entrei 1-1');
-        if (
-          sessao.sala.sessaoId != sessao.id ||
-          sessao.sala.status != StatusEnum.RUN
-        ) {
-          console.log('Entrei 1-2');
-          await this.salaService.update(sessao.sala, StatusEnum.RUN, sessao.id);
-        }
-      } else if (dateFinish <= today && maintenance >= today) {
-        console.log('Entrei 2-1');
-        if (
-          sessao.sala.sessaoId != sessao.id ||
-          sessao.sala.status != StatusEnum.MAINTENANCE
-        ) {
-          console.log('Entrei 2-2');
+      if (sessao.init <= today && sessao.finish >= today) {
+        if (sessao.sala.status != StatusSalaEnum.RUN)
+          await this.salaService.update(sessao.sala, StatusSalaEnum.RUN);
+        if (sessao.status != StatusSessaoEnum.RUN)
+          await this.updateStatus(sessao, StatusSessaoEnum.RUN);
+      } else if (sessao.finish <= today && maintenance >= today) {
+        if (sessao.sala.status != StatusSalaEnum.MAINTENANCE)
           await this.salaService.update(
             sessao.sala,
-            StatusEnum.MAINTENANCE,
-            sessao.id,
+            StatusSalaEnum.MAINTENANCE,
           );
-        }
+        if (sessao.status != StatusSessaoEnum.FINISH)
+          await this.updateStatus(sessao, StatusSessaoEnum.FINISH);
       } else {
-        console.log('Entrei 3-1');
-        if (sessao.sala.sessaoId || sessao.sala.status != StatusEnum.FREE) {
-          console.log('Entrei 3-2');
-          await this.salaService.update(sessao.sala, StatusEnum.FREE, 0);
-        }
+        if (sessao.sala.status != StatusSalaEnum.FREE)
+          await this.salaService.update(sessao.sala, StatusSalaEnum.FREE);
+        if (sessao.init > today && sessao.status != StatusSessaoEnum.WAITING)
+          await this.updateStatus(sessao, StatusSessaoEnum.WAITING);
+        if (sessao.finish < today && sessao.status != StatusSessaoEnum.FINISH)
+          await this.updateStatus(sessao, StatusSessaoEnum.FINISH);
       }
     });
   }
 
   async create(createSessao: CreateSessaoDto) {
-    const today = new Date(Date.now());
+    const timeNow = new Date(Date.now());
     const initSessao = new Date(createSessao.init);
-    if (today.getTime() - initSessao.getTime() <= 86400000)
+    if (initSessao < timeNow)
+      throw new HttpException('Horario inválido', HttpStatus.BAD_REQUEST);
+    /*   if (today.getTime() - initSessao.getTime() <= 86400000)
       throw new HttpException(
         'Sessão tem que ser cadastrada um dia antes no mínimo',
         HttpStatus.BAD_REQUEST,
-      );
+      ); */
     const { sala, filme } = await this.validateCreateSessao(createSessao);
     console.log(sala, filme);
     console.log(createSessao.init);
@@ -92,7 +84,7 @@ export class SessaoService {
   }
 
   async findSalasNasSessoes(sala: Sala, id?: number) {
-    const sessoes = await this.repository.findAll();
+    const sessoes = await this.findAll();
     const salaSessoes: Sessao[] = [];
     for (let index = 0; index < sessoes.length; index++) {
       if (sessoes[index].sala.id === sala.id) {
@@ -101,6 +93,43 @@ export class SessaoService {
     }
     console.log(salaSessoes);
     return salaSessoes;
+  }
+
+  async findFilmeSessoes() {
+    const sessoes = await this.findAll();
+    const filmeSessoes: FilmeSessao[] = [];
+    for (let i = 0; i < sessoes.length; i++) {
+      const index = filmeSessoes.findIndex(
+        (filmeSessao) => filmeSessao.filme.id == sessoes[i].filme.id,
+      );
+      const sessao: SessaoType = {
+        sessaoId: sessoes[i].id,
+        salaId: sessoes[i].sala.id,
+        inicio: sessoes[i].init,
+        fim: sessoes[i].finish,
+        status: sessoes[i].status,
+      };
+      console.table(sessao);
+      console.table(sessoes[i]);
+      if (index > 0) {
+        console.log('entrei 1');
+        filmeSessoes[index].sessoes.push(sessao);
+      } else {
+        console.log('entrei 2');
+        const filmeSessao = new FilmeSessao();
+        filmeSessao.filme = sessoes[i].filme;
+
+        filmeSessao.sessoes = [];
+        filmeSessao.sessoes.push(sessao);
+        filmeSessoes.push(filmeSessao);
+      }
+    }
+    console.table(filmeSessoes);
+    return filmeSessoes;
+  }
+
+  async findFilmeSessao(filmeId: number) {
+    return this.repository.findFilmeSessao(filmeId);
   }
 
   async update(id: number, updateSessaoDto: UpdateSessaoDto) {
@@ -117,8 +146,9 @@ export class SessaoService {
       ? new Date(updateSessaoDto.init)
       : new Date(Date.now());
     editSessao.finish = new Date(
-      filme.tempoDeFilme * 6000 + editSessao.init.getTime(),
+      filme.tempoDeFilme * 60000 + editSessao.init.getTime(),
     );
+    console.log(editSessao);
     const maintenance = new Date(sessao.finish.getTime() + 1800 * 1000);
     if (sessao.finish <= editSessao.init && maintenance >= editSessao.init)
       throw new HttpException('Sala em manutenção', HttpStatus.BAD_REQUEST);
@@ -164,17 +194,16 @@ export class SessaoService {
     const salaSessoes = await this.findSalasNasSessoes(sala, id);
     console.log(salaSessoes);
     if (!salaSessoes.length) return { sala, filme, sessao };
-    if (!newSessao.init) newSessao.init = new Date(Date.now()).toString();
     if (this.validateDateHourSessao(salaSessoes, newSessao, filme.tempoDeFilme))
       return { sala, filme, sessao };
   }
 
-  validateDateHourSessao(
+  private validateDateHourSessao(
     sessoes: Sessao[],
     newSessao: Partial<CreateSessaoDto>,
     tempoFilme: number,
   ) {
-    const init = new Date(newSessao.init);
+    const init = new Date(newSessao.init) || new Date(Date.now());
     const finish = new Date(tempoFilme * 60000 + init.getTime());
     const finishMaintenance = new Date(finish.getTime() + 1800 * 1000);
     console.log('finish', finishMaintenance);
@@ -194,5 +223,11 @@ export class SessaoService {
       }
     }
     return true;
+  }
+
+  private async updateStatus(sessao: Sessao, status: StatusSessaoEnum) {
+    console.log(sessao.id);
+    console.log(status);
+    return await this.repository.updateStatus(sessao, status);
   }
 }

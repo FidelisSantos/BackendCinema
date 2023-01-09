@@ -9,6 +9,7 @@ import {
 import { SalaService } from '../service/sala.service';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 
+@UseGuards(JwtGuard)
 @Controller('sala')
 export class SalaController {
   constructor(private readonly salaService: SalaService) {}

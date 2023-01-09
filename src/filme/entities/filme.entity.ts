@@ -17,6 +17,6 @@ export class Filme {
   @Column({ nullable: false })
   tempoDeFilme: number;
 
-  @Column()
+  @Column({ nullable: false })
   tags: string;
 }

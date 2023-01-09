@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsPositive, IsString, Length } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsPositive,
+  IsString,
+  Length,
+} from 'class-validator';
 
 export class CreateFilmeDto {
   @IsString()
@@ -18,6 +24,6 @@ export class CreateFilmeDto {
   @IsNotEmpty()
   tempoDeFilme: number;
 
-  @Length(0, 255)
-  tags: string;
+  @IsArray()
+  tags: string[];
 }

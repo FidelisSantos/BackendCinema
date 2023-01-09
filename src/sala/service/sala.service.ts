@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { StatusEnum } from '../enum/status.Enum';
+import { StatusSalaEnum } from '../enum/status-sala.enum';
 import { SalaRepositoryService } from '../repository/sala-repository.service';
 import { Sala } from '../entities/sala.entity';
 
@@ -28,10 +28,9 @@ export class SalaService {
     return sala;
   }
 
-  async update(sala: Sala, status: StatusEnum, sessaoId: number) {
+  async update(sala: Sala, status: StatusSalaEnum) {
     const updateSala = new Sala();
     updateSala.status = status;
-    updateSala.sessaoId = sessaoId;
     await this.repository.update(sala, updateSala);
   }
 }

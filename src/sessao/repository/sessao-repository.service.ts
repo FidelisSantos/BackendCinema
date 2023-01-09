@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sessao } from '../entities/sessao.entity';
 import { Repository } from 'typeorm';
+import { StatusSessaoEnum } from '../enum/status-sessao.enum';
 
 @Injectable()
 export class SessaoRepositoryService {
@@ -15,11 +16,18 @@ export class SessaoRepositoryService {
   }
 
   async findAll() {
-    return this.sessaoRepository
+    return await this.sessaoRepository
       .createQueryBuilder('sessao')
       .innerJoinAndSelect('sessao.sala', 'sala')
       .innerJoinAndSelect('sessao.filme', 'filme')
       .getMany();
+  }
+
+  async findFilmeSessao(filmeId: number) {
+    return await this.sessaoRepository
+      .createQueryBuilder('sessao')
+      .where('sessao.filmeId = :filmeId', { filmeId: filmeId })
+      .getExists();
   }
 
   async findOne(id: number) {
@@ -36,5 +44,9 @@ export class SessaoRepositoryService {
 
   async remove(id: number) {
     return await this.sessaoRepository.delete({ id });
+  }
+
+  async updateStatus(sessao: Sessao, status: StatusSessaoEnum) {
+    return await this.sessaoRepository.update(sessao, { status });
   }
 }

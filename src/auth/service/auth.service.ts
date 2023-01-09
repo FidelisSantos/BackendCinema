@@ -20,7 +20,7 @@ export class AuthService {
     return await this.jwtService.signAsync(payload);
   }
 
-  async validateCredentials(credentials: LoginType) {
+  private async validateCredentials(credentials: LoginType) {
     return this.userServices.validateLogin(credentials);
   }
 }

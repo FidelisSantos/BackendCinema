@@ -8,6 +8,6 @@ export class SessaoCronService {
 
   @Cron(CronExpression.EVERY_30_SECONDS)
   async handleCron() {
-    await this.sessaoService.updateStatus();
+    await this.sessaoService.updateStatusSalaSessao();
   }
 }

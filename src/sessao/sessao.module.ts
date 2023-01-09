@@ -8,10 +8,11 @@ import { SessaoService } from './service/sessao.service';
 import { SessaoController } from './controller/sessao.controller';
 import { SessaoRepositoryService } from './repository/sessao-repository.service';
 import { SessaoCronService } from './cron/sessao-cron.service';
+import { FilmeSessaoController } from './controller/filme-sessao.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Sessao]), SalaModule, FilmeModule],
-  controllers: [SessaoController],
+  controllers: [SessaoController, FilmeSessaoController],
   providers: [SessaoService, SessaoRepositoryService, SessaoCronService],
   exports: [SessaoRepositoryService],
 })
