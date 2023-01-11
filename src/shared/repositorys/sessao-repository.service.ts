@@ -47,6 +47,12 @@ export class SessaoRepositoryService {
     return (await this.sessaoRepository.findBy({ sala })).length ? true : false;
   }
 
+  async findSalasNasSessoes(sala: Sala) {
+    const sessoes = await this.sessaoRepository.findBy({ sala });
+    console.log(sessoes);
+    return sessoes;
+  }
+
   async exists(id: number) {
     return (await this.sessaoRepository.findOneBy({ id })) ? true : false;
   }

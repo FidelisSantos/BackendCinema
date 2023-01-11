@@ -11,18 +11,22 @@ import { AppController } from './controller/app.controller';
 import { typeOrmConfig } from '../config/typeorm.config';
 import { TagsModule } from './tags/tags.module';
 import { SharedModule } from './shared/shared.module';
+import { StatusModule } from './status/status.module';
+import { FilmeSessaoModule } from './filme-sessao/filme-sessao.module';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(typeOrmConfig),
     SharedModule,
+    StatusModule,
     SalaModule,
     UserModule,
     AuthModule,
     FilmeModule,
     SessaoModule,
     TagsModule,
+    FilmeSessaoModule,
   ],
   controllers: [AppController],
 })

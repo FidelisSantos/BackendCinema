@@ -3,12 +3,11 @@ import { SharedModule } from 'src/shared/shared.module';
 
 import { SessaoService } from './service/sessao.service';
 import { SessaoController } from './controller/sessao.controller';
-import { SessaoCronService } from './cron/sessao-cron.service';
-import { FilmeSessaoController } from './controller/filme-sessao.controller';
+import { SessaoValidationService } from './validation/sessao-validation.service';
 
 @Module({
   imports: [SharedModule],
-  controllers: [SessaoController, FilmeSessaoController],
-  providers: [SessaoService, SessaoCronService],
+  controllers: [SessaoController],
+  providers: [SessaoService, SessaoValidationService],
 })
 export class SessaoModule {}

@@ -3,13 +3,11 @@ import { CreateSessaoDto } from '../dto/create-sessao.dto';
 import { UpdateSessaoDto } from '../dto/update-sessao.dto';
 import { SessaoRepositoryService } from '../../shared/repositorys/sessao-repository.service';
 import { Sessao } from '../entities/sessao.entity';
-import { Sala } from 'src/sala/entities/sala.entity';
 import { FilmeSessao } from '../types/filmeSessao';
 import { SessaoType } from '../types/SessaoType';
-import { StatusSalaEnum } from '../../sala/enum/status-sala.enum';
-import { StatusSessaoEnum } from '../enum/status-sessao.enum';
 import { FilmeRepositoryService } from '../../shared/repositorys/filme-repository.service';
 import { SalaRepositoryService } from '../../shared/repositorys/sala-repository.service';
+import { SessaoValidationService } from '../validation/sessao-validation.service';
 
 @Injectable()
 export class SessaoService {
@@ -17,39 +15,8 @@ export class SessaoService {
     private salaRepository: SalaRepositoryService,
     private filmeRepository: FilmeRepositoryService,
     private sessaoRepository: SessaoRepositoryService,
-  ) {
-    this.updateStatusSalaSessao();
-  }
-
-  async updateStatusSalaSessao() {
-    const sessoes = await this.findAll();
-    console.log('rodei');
-    sessoes.forEach(async (sessao) => {
-      const today = new Date(Date.now());
-      const maintenance = new Date(sessao.finish.getTime() + 1800 * 1000);
-      if (sessao.init <= today && sessao.finish >= today) {
-        if (sessao.sala.status != StatusSalaEnum.RUN)
-          await this.salaRepository.update(sessao.sala, StatusSalaEnum.RUN);
-        if (sessao.status != StatusSessaoEnum.RUN)
-          await this.updateStatus(sessao, StatusSessaoEnum.RUN);
-      } else if (sessao.finish <= today && maintenance >= today) {
-        if (sessao.sala.status != StatusSalaEnum.MAINTENANCE)
-          await this.salaRepository.update(
-            sessao.sala,
-            StatusSalaEnum.MAINTENANCE,
-          );
-        if (sessao.status != StatusSessaoEnum.FINISH)
-          await this.updateStatus(sessao, StatusSessaoEnum.FINISH);
-      } else {
-        if (sessao.sala.status != StatusSalaEnum.FREE)
-          await this.salaRepository.update(sessao.sala, StatusSalaEnum.FREE);
-        if (sessao.init > today && sessao.status != StatusSessaoEnum.WAITING)
-          await this.updateStatus(sessao, StatusSessaoEnum.WAITING);
-        if (sessao.finish < today && sessao.status != StatusSessaoEnum.FINISH)
-          await this.updateStatus(sessao, StatusSessaoEnum.FINISH);
-      }
-    });
-  }
+    private sessaoValidation: SessaoValidationService,
+  ) {}
 
   async create(createSessao: CreateSessaoDto) {
     const timeNow = new Date(Date.now());
@@ -61,7 +28,27 @@ export class SessaoService {
         'Sessão tem que ser cadastrada um dia antes no mínimo',
         HttpStatus.BAD_REQUEST,
       ); */
-    const { sala, filme } = await this.validateCreateSessao(createSessao);
+    const sala = await this.salaRepository.findOne(createSessao.salaId);
+    if (!sala)
+      throw new HttpException('Sala não encontrada', HttpStatus.BAD_REQUEST);
+    const filme = await this.filmeRepository.findOne(createSessao.filmeId);
+    if (!filme)
+      throw new HttpException('Filme não encontrado', HttpStatus.BAD_REQUEST);
+
+    const sessoes = await this.sessaoRepository.findSalasNasSessoes(sala);
+    if (sessoes.length) {
+      if (
+        !this.sessaoValidation.validateDateHourSessao(
+          sessoes,
+          createSessao,
+          filme.tempoDeFilme,
+        )
+      )
+        throw new HttpException(
+          'Conflito com sessão já cadastrada',
+          HttpStatus.BAD_REQUEST,
+        );
+    }
     console.log(sala, filme);
     console.log(createSessao.init);
     const sessao = new Sessao();
@@ -81,18 +68,6 @@ export class SessaoService {
 
   async findOne(id: number) {
     return await this.sessaoRepository.findOne(id);
-  }
-
-  async findSalasNasSessoes(sala: Sala, id?: number) {
-    const sessoes = await this.findAll();
-    const salaSessoes: Sessao[] = [];
-    for (let index = 0; index < sessoes.length; index++) {
-      if (sessoes[index].sala.id === sala.id) {
-        if (!id || sessoes[index].id !== id) salaSessoes.push(sessoes[index]);
-      }
-    }
-    console.log(salaSessoes);
-    return salaSessoes;
   }
 
   async findFilmeSessoes() {
@@ -133,13 +108,29 @@ export class SessaoService {
   }
 
   async update(id: number, updateSessaoDto: UpdateSessaoDto) {
-    const { sala, filme, sessao } = await this.validateEditSessao(
-      updateSessaoDto,
-      id,
-    );
-    console.log(sessao);
-    if (!sala || !filme)
-      throw new HttpException('Dados inválidos', HttpStatus.BAD_REQUEST);
+    const sessao = await this.findOne(id);
+    if (!sessao)
+      throw new HttpException('Sessão não encontrada', HttpStatus.BAD_REQUEST);
+    const sala = await this.salaRepository.findOne(updateSessaoDto.salaId);
+    if (!sala)
+      throw new HttpException('Sala não encontrada', HttpStatus.BAD_REQUEST);
+    const filme = await this.filmeRepository.findOne(updateSessaoDto.filmeId);
+    if (!filme)
+      throw new HttpException('Filme não encontrado', HttpStatus.BAD_REQUEST);
+    const sessoes = await this.sessaoRepository.findSalasNasSessoes(sala);
+    if (sessoes.length) {
+      if (
+        !this.sessaoValidation.validateDateHourSessao(
+          sessoes,
+          updateSessaoDto,
+          filme.tempoDeFilme,
+        )
+      )
+        throw new HttpException(
+          'Conflito com sessão já cadastrada',
+          HttpStatus.BAD_REQUEST,
+        );
+    }
     const editSessao = new Sessao();
     editSessao.filme = filme;
     editSessao.init = updateSessaoDto.init
@@ -164,70 +155,5 @@ export class SessaoService {
         HttpStatus.BAD_REQUEST,
       );
     else this.sessaoRepository.remove(id);
-  }
-
-  private async validateCreateSessao(newSessao: CreateSessaoDto) {
-    const sala = await this.salaRepository.findOne(newSessao.salaId);
-    const filme = await this.filmeRepository.findOne(newSessao.filmeId);
-    if (!sala || !filme)
-      throw new HttpException('Body Inválido', HttpStatus.BAD_REQUEST);
-    const salaSessoes = await this.findSalasNasSessoes(sala);
-    if (!salaSessoes.length) return { sala, filme };
-    if (this.validateDateHourSessao(salaSessoes, newSessao, filme.tempoDeFilme))
-      return { sala, filme };
-  }
-
-  private async validateEditSessao(
-    newSessao: Partial<CreateSessaoDto>,
-    id: number,
-  ) {
-    const sessao = await this.findOne(id);
-    if (!sessao)
-      throw new HttpException('Sessão não encontrada', HttpStatus.BAD_REQUEST);
-    const sala = await this.salaRepository.findOne(newSessao.salaId);
-    const filme = await this.filmeRepository.findOne(newSessao.filmeId);
-    if (!sala || !filme)
-      throw new HttpException(
-        'Sala ou Filme incorreto',
-        HttpStatus.BAD_REQUEST,
-      );
-    const salaSessoes = await this.findSalasNasSessoes(sala, id);
-    console.log(salaSessoes);
-    if (!salaSessoes.length) return { sala, filme, sessao };
-    if (this.validateDateHourSessao(salaSessoes, newSessao, filme.tempoDeFilme))
-      return { sala, filme, sessao };
-  }
-
-  private validateDateHourSessao(
-    sessoes: Sessao[],
-    newSessao: Partial<CreateSessaoDto>,
-    tempoFilme: number,
-  ) {
-    const init = new Date(newSessao.init) || new Date(Date.now());
-    const finish = new Date(tempoFilme * 60000 + init.getTime());
-    const finishMaintenance = new Date(finish.getTime() + 1800 * 1000);
-    console.log('finish', finishMaintenance);
-    for (let index = 0; index < sessoes.length; index++) {
-      const finishSessao = new Date(
-        sessoes[index].finish.getTime() + 1800 * 1000,
-      );
-      const initSessao = sessoes[index].init;
-      if (
-        (init >= initSessao && init <= finishSessao) ||
-        (finishMaintenance >= initSessao && finishMaintenance <= finishSessao)
-      ) {
-        throw new HttpException(
-          'Conflito com sessão já cadastrada',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    }
-    return true;
-  }
-
-  private async updateStatus(sessao: Sessao, status: StatusSessaoEnum) {
-    console.log(sessao.id);
-    console.log(status);
-    return await this.sessaoRepository.updateStatus(sessao, status);
   }
 }
