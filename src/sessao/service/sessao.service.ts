@@ -1,22 +1,22 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateSessaoDto } from '../dto/create-sessao.dto';
 import { UpdateSessaoDto } from '../dto/update-sessao.dto';
-import { SessaoRepositoryService } from '../repository/sessao-repository.service';
+import { SessaoRepositoryService } from '../../shared/repositorys/sessao-repository.service';
 import { Sessao } from '../entities/sessao.entity';
-import { FilmeService } from 'src/filme/service/filme.service';
-import { SalaService } from 'src/sala/service/sala.service';
 import { Sala } from 'src/sala/entities/sala.entity';
 import { FilmeSessao } from '../types/filmeSessao';
 import { SessaoType } from '../types/SessaoType';
 import { StatusSalaEnum } from '../../sala/enum/status-sala.enum';
 import { StatusSessaoEnum } from '../enum/status-sessao.enum';
+import { FilmeRepositoryService } from '../../shared/repositorys/filme-repository.service';
+import { SalaRepositoryService } from '../../shared/repositorys/sala-repository.service';
 
 @Injectable()
 export class SessaoService {
   constructor(
-    private salaService: SalaService,
-    private filmeService: FilmeService,
-    private repository: SessaoRepositoryService,
+    private salaRepository: SalaRepositoryService,
+    private filmeRepository: FilmeRepositoryService,
+    private sessaoRepository: SessaoRepositoryService,
   ) {
     this.updateStatusSalaSessao();
   }
@@ -29,12 +29,12 @@ export class SessaoService {
       const maintenance = new Date(sessao.finish.getTime() + 1800 * 1000);
       if (sessao.init <= today && sessao.finish >= today) {
         if (sessao.sala.status != StatusSalaEnum.RUN)
-          await this.salaService.update(sessao.sala, StatusSalaEnum.RUN);
+          await this.salaRepository.update(sessao.sala, StatusSalaEnum.RUN);
         if (sessao.status != StatusSessaoEnum.RUN)
           await this.updateStatus(sessao, StatusSessaoEnum.RUN);
       } else if (sessao.finish <= today && maintenance >= today) {
         if (sessao.sala.status != StatusSalaEnum.MAINTENANCE)
-          await this.salaService.update(
+          await this.salaRepository.update(
             sessao.sala,
             StatusSalaEnum.MAINTENANCE,
           );
@@ -42,7 +42,7 @@ export class SessaoService {
           await this.updateStatus(sessao, StatusSessaoEnum.FINISH);
       } else {
         if (sessao.sala.status != StatusSalaEnum.FREE)
-          await this.salaService.update(sessao.sala, StatusSalaEnum.FREE);
+          await this.salaRepository.update(sessao.sala, StatusSalaEnum.FREE);
         if (sessao.init > today && sessao.status != StatusSessaoEnum.WAITING)
           await this.updateStatus(sessao, StatusSessaoEnum.WAITING);
         if (sessao.finish < today && sessao.status != StatusSessaoEnum.FINISH)
@@ -72,15 +72,15 @@ export class SessaoService {
     sessao.finish = new Date(
       sessao.init.getTime() + filme.tempoDeFilme * 60000,
     );
-    return await this.repository.create(sessao);
+    return await this.sessaoRepository.create(sessao);
   }
 
   async findAll() {
-    return await this.repository.findAll();
+    return await this.sessaoRepository.findAll();
   }
 
   async findOne(id: number) {
-    return await this.repository.findOne(id);
+    return await this.sessaoRepository.findOne(id);
   }
 
   async findSalasNasSessoes(sala: Sala, id?: number) {
@@ -129,7 +129,7 @@ export class SessaoService {
   }
 
   async findFilmeSessao(filmeId: number) {
-    return this.repository.findFilmeSessao(filmeId);
+    return this.sessaoRepository.findFilmeSessao(filmeId);
   }
 
   async update(id: number, updateSessaoDto: UpdateSessaoDto) {
@@ -152,23 +152,23 @@ export class SessaoService {
     const maintenance = new Date(sessao.finish.getTime() + 1800 * 1000);
     if (sessao.finish <= editSessao.init && maintenance >= editSessao.init)
       throw new HttpException('Sala em manutenção', HttpStatus.BAD_REQUEST);
-    await this.repository.update(sessao, editSessao);
+    await this.sessaoRepository.update(sessao, editSessao);
   }
 
   async remove(id: number) {
-    const sessao = await this.repository.findOne(id);
+    const sessao = await this.sessaoRepository.findOne(id);
     const date = new Date(Date.now());
     if (sessao.init <= date && sessao.finish >= date)
       throw new HttpException(
         'Sessão em andamento não pode ser deletada',
         HttpStatus.BAD_REQUEST,
       );
-    else this.repository.remove(id);
+    else this.sessaoRepository.remove(id);
   }
 
   private async validateCreateSessao(newSessao: CreateSessaoDto) {
-    const sala = await this.salaService.findOne(newSessao.salaId);
-    const filme = await this.filmeService.findOne(newSessao.filmeId);
+    const sala = await this.salaRepository.findOne(newSessao.salaId);
+    const filme = await this.filmeRepository.findOne(newSessao.filmeId);
     if (!sala || !filme)
       throw new HttpException('Body Inválido', HttpStatus.BAD_REQUEST);
     const salaSessoes = await this.findSalasNasSessoes(sala);
@@ -184,8 +184,8 @@ export class SessaoService {
     const sessao = await this.findOne(id);
     if (!sessao)
       throw new HttpException('Sessão não encontrada', HttpStatus.BAD_REQUEST);
-    const sala = await this.salaService.findOne(newSessao.salaId);
-    const filme = await this.filmeService.findOne(newSessao.filmeId);
+    const sala = await this.salaRepository.findOne(newSessao.salaId);
+    const filme = await this.filmeRepository.findOne(newSessao.filmeId);
     if (!sala || !filme)
       throw new HttpException(
         'Sala ou Filme incorreto',
@@ -228,6 +228,6 @@ export class SessaoService {
   private async updateStatus(sessao: Sessao, status: StatusSessaoEnum) {
     console.log(sessao.id);
     console.log(status);
-    return await this.repository.updateStatus(sessao, status);
+    return await this.sessaoRepository.updateStatus(sessao, status);
   }
 }

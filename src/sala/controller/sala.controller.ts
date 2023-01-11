@@ -9,7 +9,6 @@ import {
 import { SalaService } from '../service/sala.service';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 
-@UseGuards(JwtGuard)
 @Controller('sala')
 export class SalaController {
   constructor(private readonly salaService: SalaService) {}
@@ -26,6 +25,6 @@ export class SalaController {
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return await this.salaService.remove(+id);
+    return this.salaService.remove(+id);
   }
 }

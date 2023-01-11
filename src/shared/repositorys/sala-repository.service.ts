@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Sala } from '../entities/sala.entity';
+import { Sala } from '../../sala/entities/sala.entity';
 import { Repository } from 'typeorm';
+import { StatusSalaEnum } from 'src/sala/enum/status-sala.enum';
 
 @Injectable()
 export class SalaRepositoryService {
@@ -15,7 +16,7 @@ export class SalaRepositoryService {
   }
 
   async remove(sala: Sala) {
-    await this.salaRepository.delete(sala);
+    return await this.salaRepository.delete(sala);
   }
 
   async findOne(id: number) {
@@ -26,7 +27,7 @@ export class SalaRepositoryService {
     return await this.salaRepository.find();
   }
 
-  async update(sala: Sala, updateSala: Sala) {
-    return await this.salaRepository.update(sala, updateSala);
+  async update(sala: Sala, status: StatusSalaEnum) {
+    return await this.salaRepository.update(sala, { status });
   }
 }

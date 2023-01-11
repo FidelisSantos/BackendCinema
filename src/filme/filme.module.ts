@@ -1,16 +1,15 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { SharedModule } from 'src/shared/shared.module';
 
-import { FilmeRepositoryService } from './repository/filme-repository.service';
 import { FilmeValidationService } from './validation/filme-validation.service';
 import { FilmeService } from './service/filme.service';
 import { FilmeController } from './controller/filme.controller';
-import { Filme } from './entities/filme.entity';
+import { TagsModule } from 'src/tags/tags.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Filme])],
+  imports: [SharedModule, TagsModule],
   controllers: [FilmeController],
-  providers: [FilmeService, FilmeRepositoryService, FilmeValidationService],
+  providers: [FilmeService, FilmeValidationService],
   exports: [FilmeService],
 })
 export class FilmeModule {}

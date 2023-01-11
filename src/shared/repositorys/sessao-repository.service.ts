@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Sessao } from '../entities/sessao.entity';
+import { Sessao } from '../../sessao/entities/sessao.entity';
 import { Repository } from 'typeorm';
-import { StatusSessaoEnum } from '../enum/status-sessao.enum';
+import { StatusSessaoEnum } from '../../sessao/enum/status-sessao.enum';
+import { Filme } from 'src/filme/entities/filme.entity';
+import { Sala } from 'src/sala/entities/sala.entity';
 
 @Injectable()
 export class SessaoRepositoryService {
@@ -16,11 +18,12 @@ export class SessaoRepositoryService {
   }
 
   async findAll() {
-    return await this.sessaoRepository
-      .createQueryBuilder('sessao')
-      .innerJoinAndSelect('sessao.sala', 'sala')
-      .innerJoinAndSelect('sessao.filme', 'filme')
-      .getMany();
+    return await this.sessaoRepository.find({
+      relations: {
+        filme: true,
+        sala: true,
+      },
+    });
   }
 
   async findFilmeSessao(filmeId: number) {
@@ -32,6 +35,16 @@ export class SessaoRepositoryService {
 
   async findOne(id: number) {
     return await this.sessaoRepository.findOneBy({ id });
+  }
+
+  async useFilme(filme: Filme) {
+    return (await this.sessaoRepository.findBy({ filme })).length
+      ? true
+      : false;
+  }
+
+  async useSala(sala: Sala) {
+    return (await this.sessaoRepository.findBy({ sala })).length ? true : false;
   }
 
   async exists(id: number) {

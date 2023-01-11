@@ -25,5 +25,5 @@ export class CreateFilmeDto {
   tempoDeFilme: number;
 
   @IsArray()
-  tags: string[];
+  tags: number[];
 }

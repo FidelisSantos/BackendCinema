@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { FilmeService } from '../service/filme.service';
 import { CreateFilmeDto } from '../dto/create-filme.dto';
 import { UpdateFilmeDto } from '../dto/update-filme.dto';
+import { JwtGuard } from 'src/auth/guard/jwt.guard';
 
 @Controller('filme')
 export class FilmeController {

@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Tag } from '../../tags/entities/tag.entity';
 
 @Entity()
 export class Filme {
@@ -17,6 +24,10 @@ export class Filme {
   @Column({ nullable: false })
   tempoDeFilme: number;
 
-  @Column({ nullable: false })
-  tags: string;
+  @ManyToMany(() => Tag, { eager: true, cascade: true })
+  @JoinTable({
+    name: 'filmeTags',
+    synchronize: true,
+  })
+  tags: Tag[];
 }

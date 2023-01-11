@@ -1,15 +1,20 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateFilmeDto } from '../dto/create-filme.dto';
 import { UpdateFilmeDto } from '../dto/update-filme.dto';
-import { FilmeRepositoryService } from '../repository/filme-repository.service';
+
 import { Filme } from '../entities/filme.entity';
 import { FilmeValidationService } from '../validation/filme-validation.service';
+import { FilmeRepositoryService } from '../../shared/repositorys/filme-repository.service';
+import { TagsRepositoryService } from 'src/shared/repositorys/tags-repository.service';
+import { SessaoRepositoryService } from 'src/shared/repositorys/sessao-repository.service';
 
 @Injectable()
 export class FilmeService {
   constructor(
-    private repository: FilmeRepositoryService,
+    private filmeRepository: FilmeRepositoryService,
     private validation: FilmeValidationService,
+    private tagRepository: TagsRepositoryService,
+    private sessaoRepository: SessaoRepositoryService,
   ) {}
 
   async create(createFilme: CreateFilmeDto) {
@@ -17,9 +22,9 @@ export class FilmeService {
       !(await this.validation.validateLink(createFilme.linkImagem)) ||
       !(await this.validation.validateTime(createFilme.tempoDeFilme))
     )
-      throw new HttpException('Body invalid', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Dados inválidos', HttpStatus.BAD_REQUEST);
 
-    if (await this.repository.exists(createFilme.titulo))
+    if (await this.filmeRepository.exists(createFilme.titulo))
       throw new HttpException(
         'Já existe filme com esse titulo',
         HttpStatus.BAD_REQUEST,
@@ -30,12 +35,18 @@ export class FilmeService {
     filme.descricao = createFilme.descricao;
     filme.linkImagem = createFilme.linkImagem;
     filme.tempoDeFilme = createFilme.tempoDeFilme;
-    filme.tags = createFilme.tags.join(', ');
-    return await this.repository.create(filme);
+    filme.tags = [];
+    createFilme.tags.forEach(async (idTag) => {
+      const tag = await this.tagRepository.findOne(idTag);
+      console.log(tag);
+      filme.tags.push(tag);
+    });
+
+    return await this.filmeRepository.create(filme);
   }
 
   async findAll() {
-    return await this.repository.findAll();
+    return await this.filmeRepository.findAll();
   }
 
   async update(id: number, updateFilme: UpdateFilmeDto) {
@@ -55,17 +66,26 @@ export class FilmeService {
         filmeUpdate.tempoDeFilme = updateFilme.tempoDeFilme;
       else throw new HttpException('Invalid Time', HttpStatus.BAD_REQUEST);
     }
-    if (updateFilme.tags) filmeUpdate.tags = updateFilme.tags.join(', ');
-    return await this.repository.update(filme, filmeUpdate);
+    if (updateFilme.tags.length)
+      updateFilme.tags.forEach(async (tag) => {
+        filmeUpdate.tags.push(await this.tagRepository.findOne(tag));
+      });
+
+    return await this.filmeRepository.update(filme, filmeUpdate);
   }
 
   async remove(id: number) {
     const filme = await this.findOne(id);
-    await this.repository.remove(filme);
+    if (await this.sessaoRepository.useFilme(filme))
+      throw new HttpException(
+        'Filme cadastrado em uma sessão',
+        HttpStatus.BAD_REQUEST,
+      );
+    return await this.filmeRepository.remove(filme);
   }
 
   async findOne(id: number) {
-    const filme = await this.repository.findOne(id);
+    const filme = await this.filmeRepository.findOne(id);
     if (!filme)
       throw new HttpException('Filme não encontrado', HttpStatus.BAD_REQUEST);
     return filme;

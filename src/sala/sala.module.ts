@@ -1,15 +1,13 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { SharedModule } from 'src/shared/shared.module';
 
-import { Sala } from './entities/sala.entity';
 import { SalaService } from './service/sala.service';
 import { SalaController } from './controller/sala.controller';
-import { SalaRepositoryService } from './repository/sala-repository.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Sala])],
+  imports: [SharedModule],
   controllers: [SalaController],
-  providers: [SalaService, SalaRepositoryService],
+  providers: [SalaService],
   exports: [SalaService],
 })
 export class SalaModule {}

@@ -9,16 +9,20 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from './controller/app.controller';
 import { typeOrmConfig } from '../config/typeorm.config';
+import { TagsModule } from './tags/tags.module';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(typeOrmConfig),
+    SharedModule,
     SalaModule,
     UserModule,
     AuthModule,
     FilmeModule,
     SessaoModule,
+    TagsModule,
   ],
   controllers: [AppController],
 })
