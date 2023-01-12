@@ -13,6 +13,8 @@ export class TagsService {
   ) {}
 
   async create(createTagDto: CreateTagDto) {
+    if (await this.tagRepository.tagExists(createTagDto.tag))
+      throw new HttpException('Tag já existe', HttpStatus.BAD_REQUEST);
     const tag = new Tag();
     tag.tag = createTagDto.tag;
     return await this.tagRepository.create(tag);

@@ -33,11 +33,15 @@ export class FilmeRepositoryService {
   }
 
   async update(filme: Filme, updateFilme: Filme) {
-    return await this.filmeRepository.update(filme, updateFilme);
+    await this.filmeRepository.manager.delete('filmeTags', {
+      filmeId: filme.id,
+    });
+    await this.remove(filme);
+    return await this.create(updateFilme);
   }
 
-  async remove(filme: Filme) {
-    return await this.filmeRepository.delete(filme);
+  async remove(removeFilme: Filme) {
+    return await this.filmeRepository.delete({ id: removeFilme.id });
   }
 
   async exists(titulo: string) {

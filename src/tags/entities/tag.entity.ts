@@ -6,6 +6,6 @@ export class Tag {
   @PrimaryColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   tag: string;
 }

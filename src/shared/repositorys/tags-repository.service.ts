@@ -29,4 +29,8 @@ export class TagsRepositoryService {
   async remove(id: number) {
     return await this.tagRepository.delete(id);
   }
+
+  async tagExists(tag: string) {
+    return (await this.tagRepository.findBy({ tag })).length > 0;
+  }
 }

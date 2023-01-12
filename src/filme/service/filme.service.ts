@@ -7,6 +7,7 @@ import { FilmeValidationService } from '../validation/filme-validation.service';
 import { FilmeRepositoryService } from '../../shared/repositorys/filme-repository.service';
 import { TagsRepositoryService } from 'src/shared/repositorys/tags-repository.service';
 import { SessaoRepositoryService } from 'src/shared/repositorys/sessao-repository.service';
+import { Tag } from 'src/tags/entities/tag.entity';
 
 @Injectable()
 export class FilmeService {
@@ -50,6 +51,8 @@ export class FilmeService {
   }
 
   async update(id: number, updateFilme: UpdateFilmeDto) {
+    const searchTags: Tag[] = [];
+    console.log(updateFilme);
     if (!updateFilme)
       throw new HttpException('Dados inválidos', HttpStatus.BAD_REQUEST);
     const filme = await this.findOne(id);
@@ -66,16 +69,24 @@ export class FilmeService {
         filmeUpdate.tempoDeFilme = updateFilme.tempoDeFilme;
       else throw new HttpException('Invalid Time', HttpStatus.BAD_REQUEST);
     }
-    if (updateFilme.tags.length)
-      updateFilme.tags.forEach(async (tag) => {
-        filmeUpdate.tags.push(await this.tagRepository.findOne(tag));
-      });
+    filmeUpdate.tags = [];
+    if (updateFilme.tags.length) {
+      for (let index = 0; index < updateFilme.tags.length; index++) {
+        const tag = await this.tagRepository.findOne(updateFilme.tags[index]);
+        console.log(tag);
+        searchTags.push(tag);
+      }
+      console.log(searchTags);
+      filmeUpdate.tags = searchTags;
+      console.log(filmeUpdate);
+    }
 
     return await this.filmeRepository.update(filme, filmeUpdate);
   }
 
   async remove(id: number) {
     const filme = await this.findOne(id);
+    console.log(filme);
     if (await this.sessaoRepository.useFilme(filme))
       throw new HttpException(
         'Filme cadastrado em uma sessão',
@@ -86,6 +97,7 @@ export class FilmeService {
 
   async findOne(id: number) {
     const filme = await this.filmeRepository.findOne(id);
+    console.log(filme);
     if (!filme)
       throw new HttpException('Filme não encontrado', HttpStatus.BAD_REQUEST);
     return filme;

@@ -12,7 +12,7 @@ export class Filme {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column({ nullable: false })
+  @Column({ nullable: false, unique: true })
   titulo: string;
 
   @Column({ nullable: false })
@@ -24,7 +24,7 @@ export class Filme {
   @Column({ nullable: false })
   tempoDeFilme: number;
 
-  @ManyToMany(() => Tag, { eager: true, cascade: true })
+  @ManyToMany(() => Tag, { eager: true, nullable: false })
   @JoinTable({
     name: 'filmeTags',
     synchronize: true,
