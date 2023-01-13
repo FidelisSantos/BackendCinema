@@ -108,6 +108,8 @@ export class SessaoService {
   }
 
   async update(id: number, updateSessaoDto: UpdateSessaoDto) {
+    console.log(updateSessaoDto, 'update body');
+    const sessoesEdit: Sessao[] = [];
     const sessao = await this.findOne(id);
     if (!sessao)
       throw new HttpException('Sessão não encontrada', HttpStatus.BAD_REQUEST);
@@ -118,10 +120,17 @@ export class SessaoService {
     if (!filme)
       throw new HttpException('Filme não encontrado', HttpStatus.BAD_REQUEST);
     const sessoes = await this.sessaoRepository.findSalasNasSessoes(sala);
+    const index = sessoes.indexOf(sessao);
+    console.log(sessoesEdit);
+    sessoes.forEach((sessao) => {
+      if (sessao.id != id) sessoesEdit.push(sessao);
+    });
+    console.log(sessoesEdit);
+    console.log(index);
     if (sessoes.length) {
       if (
         !this.sessaoValidation.validateDateHourSessao(
-          sessoes,
+          sessoesEdit,
           updateSessaoDto,
           filme.tempoDeFilme,
         )
@@ -133,6 +142,7 @@ export class SessaoService {
     }
     const editSessao = new Sessao();
     editSessao.filme = filme;
+    editSessao.sala = sala;
     editSessao.init = updateSessaoDto.init
       ? new Date(updateSessaoDto.init)
       : new Date(Date.now());
