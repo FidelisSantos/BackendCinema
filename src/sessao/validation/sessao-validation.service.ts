@@ -9,12 +9,10 @@ export class SessaoValidationService {
     newSessao: Partial<CreateSessaoDto>,
     tempoFilme: number,
   ) {
-    console.log('entrei');
     if (!newSessao.init) newSessao.init = Date.now().toString();
     const init = new Date(newSessao.init);
     const finish = new Date(tempoFilme * 60000 + init.getTime());
     const finishMaintenance = new Date(finish.getTime() + 1800 * 1000);
-    console.log('finish', finishMaintenance);
     for (let index = 0; index < sessoes.length; index++) {
       const finishSessao = new Date(
         sessoes[index].finish.getTime() + 1800 * 1000,

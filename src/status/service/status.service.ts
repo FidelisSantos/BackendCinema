@@ -17,7 +17,6 @@ export class StatusService {
   @Cron(CronExpression.EVERY_30_SECONDS)
   async updateStatusSalaSessao() {
     const sessoes = await this.sessaoRepository.findAll();
-    console.log('rodei');
     sessoes.forEach(async (sessao) => {
       const today = new Date(Date.now());
       const maintenance = new Date(sessao.finish.getTime() + 1800 * 1000);

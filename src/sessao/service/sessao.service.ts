@@ -22,7 +22,10 @@ export class SessaoService {
     const timeNow = new Date(Date.now());
     const initSessao = new Date(createSessao.init);
     if (initSessao < timeNow)
-      throw new HttpException('Horario inválido', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Data/Hora de inicio inválida',
+        HttpStatus.BAD_REQUEST,
+      );
     /*   if (today.getTime() - initSessao.getTime() <= 86400000)
       throw new HttpException(
         'Sessão tem que ser cadastrada um dia antes no mínimo',
@@ -49,13 +52,10 @@ export class SessaoService {
           HttpStatus.BAD_REQUEST,
         );
     }
-    console.log(sala, filme);
-    console.log(createSessao.init);
     const sessao = new Sessao();
     sessao.sala = sala;
     sessao.filme = filme;
     sessao.init = new Date(createSessao.init);
-    console.log(sessao.init);
     sessao.finish = new Date(
       sessao.init.getTime() + filme.tempoDeFilme * 60000,
     );
@@ -84,22 +84,16 @@ export class SessaoService {
         fim: sessoes[i].finish,
         status: sessoes[i].status,
       };
-      console.table(sessao);
-      console.table(sessoes[i]);
       if (index > 0) {
-        console.log('entrei 1');
         filmeSessoes[index].sessoes.push(sessao);
       } else {
-        console.log('entrei 2');
         const filmeSessao = new FilmeSessao();
         filmeSessao.filme = sessoes[i].filme;
-
         filmeSessao.sessoes = [];
         filmeSessao.sessoes.push(sessao);
         filmeSessoes.push(filmeSessao);
       }
     }
-    console.table(filmeSessoes);
     return filmeSessoes;
   }
 
@@ -108,9 +102,15 @@ export class SessaoService {
   }
 
   async update(id: number, updateSessaoDto: UpdateSessaoDto) {
-    console.log(updateSessaoDto, 'update body');
     const sessoesEdit: Sessao[] = [];
     const sessao = await this.findOne(id);
+    const timeNow = new Date(Date.now());
+    const initSessao = new Date(updateSessaoDto.init);
+    if (initSessao < timeNow)
+      throw new HttpException(
+        'Data/Hora de inicio inválida',
+        HttpStatus.BAD_REQUEST,
+      );
     if (!sessao)
       throw new HttpException('Sessão não encontrada', HttpStatus.BAD_REQUEST);
     const sala = await this.salaRepository.findOne(updateSessaoDto.salaId);
@@ -120,13 +120,9 @@ export class SessaoService {
     if (!filme)
       throw new HttpException('Filme não encontrado', HttpStatus.BAD_REQUEST);
     const sessoes = await this.sessaoRepository.findSalasNasSessoes(sala);
-    const index = sessoes.indexOf(sessao);
-    console.log(sessoesEdit);
     sessoes.forEach((sessao) => {
       if (sessao.id != id) sessoesEdit.push(sessao);
     });
-    console.log(sessoesEdit);
-    console.log(index);
     if (sessoes.length) {
       if (
         !this.sessaoValidation.validateDateHourSessao(
@@ -146,10 +142,10 @@ export class SessaoService {
     editSessao.init = updateSessaoDto.init
       ? new Date(updateSessaoDto.init)
       : new Date(Date.now());
+    console.log(editSessao.init);
     editSessao.finish = new Date(
       filme.tempoDeFilme * 60000 + editSessao.init.getTime(),
     );
-    console.log(editSessao);
     const maintenance = new Date(sessao.finish.getTime() + 1800 * 1000);
     if (sessao.finish <= editSessao.init && maintenance >= editSessao.init)
       throw new HttpException('Sala em manutenção', HttpStatus.BAD_REQUEST);

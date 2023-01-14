@@ -39,7 +39,6 @@ export class FilmeService {
     filme.tags = [];
     createFilme.tags.forEach(async (idTag) => {
       const tag = await this.tagRepository.findOne(idTag);
-      console.log(tag);
       filme.tags.push(tag);
     });
 
@@ -52,10 +51,14 @@ export class FilmeService {
 
   async update(id: number, updateFilme: UpdateFilmeDto) {
     const searchTags: Tag[] = [];
-    console.log(updateFilme);
     if (!updateFilme)
       throw new HttpException('Dados inválidos', HttpStatus.BAD_REQUEST);
     const filme = await this.findOne(id);
+    if (await this.sessaoRepository.useFilme(filme))
+      throw new HttpException(
+        'Filme cadastrado em uma sessão',
+        HttpStatus.BAD_REQUEST,
+      );
     const filmeUpdate = new Filme();
     if (updateFilme.titulo) filmeUpdate.titulo = updateFilme.titulo;
     if (updateFilme.descricao) filmeUpdate.descricao = updateFilme.descricao;
@@ -73,12 +76,9 @@ export class FilmeService {
     if (updateFilme.tags.length) {
       for (let index = 0; index < updateFilme.tags.length; index++) {
         const tag = await this.tagRepository.findOne(updateFilme.tags[index]);
-        console.log(tag);
         searchTags.push(tag);
       }
-      console.log(searchTags);
       filmeUpdate.tags = searchTags;
-      console.log(filmeUpdate);
     }
 
     return await this.filmeRepository.update(filme, filmeUpdate);
@@ -86,7 +86,6 @@ export class FilmeService {
 
   async remove(id: number) {
     const filme = await this.findOne(id);
-    console.log(filme);
     if (await this.sessaoRepository.useFilme(filme))
       throw new HttpException(
         'Filme cadastrado em uma sessão',
@@ -97,7 +96,6 @@ export class FilmeService {
 
   async findOne(id: number) {
     const filme = await this.filmeRepository.findOne(id);
-    console.log(filme);
     if (!filme)
       throw new HttpException('Filme não encontrado', HttpStatus.BAD_REQUEST);
     return filme;

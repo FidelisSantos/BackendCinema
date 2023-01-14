@@ -33,6 +33,8 @@ export class TagsService {
 
   async update(id: number, updateTagDto: UpdateTagDto) {
     const tag = await this.findOne(id);
+    if (await this.filmeRepository.useTag(tag))
+      throw new HttpException('Tag em uso', HttpStatus.BAD_REQUEST);
     const updateTag = new Tag();
     updateTag.tag = updateTagDto.tag;
     return await this.tagRepository.update(tag, updateTag);

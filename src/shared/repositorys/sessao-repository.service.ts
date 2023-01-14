@@ -49,7 +49,6 @@ export class SessaoRepositoryService {
 
   async findSalasNasSessoes(sala: Sala) {
     const sessoes = await this.sessaoRepository.findBy({ sala });
-    console.log(sessoes);
     return sessoes;
   }
 

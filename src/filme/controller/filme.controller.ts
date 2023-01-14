@@ -13,6 +13,7 @@ import { CreateFilmeDto } from '../dto/create-filme.dto';
 import { UpdateFilmeDto } from '../dto/update-filme.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 
+@UseGuards(JwtGuard)
 @Controller('filme')
 export class FilmeController {
   constructor(private readonly filmeService: FilmeService) {}

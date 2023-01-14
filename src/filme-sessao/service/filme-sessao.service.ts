@@ -21,22 +21,16 @@ export class FilmeSessaoService {
         fim: sessoes[i].finish,
         status: sessoes[i].status,
       };
-      console.table(sessao);
-      console.table(sessoes[i]);
-      if (index > 0) {
-        console.log('entrei 1');
+      if (index >= 0) {
         filmeSessoes[index].sessoes.push(sessao);
       } else {
-        console.log('entrei 2');
         const filmeSessao = new FilmeSessao();
         filmeSessao.filme = sessoes[i].filme;
-
         filmeSessao.sessoes = [];
         filmeSessao.sessoes.push(sessao);
         filmeSessoes.push(filmeSessao);
       }
     }
-    console.table(filmeSessoes);
     return filmeSessoes;
   }
 }
