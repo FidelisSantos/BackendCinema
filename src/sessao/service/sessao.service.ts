@@ -26,11 +26,11 @@ export class SessaoService {
         'Data/Hora de inicio inválida',
         HttpStatus.BAD_REQUEST,
       );
-    /*   if (today.getTime() - initSessao.getTime() <= 86400000)
+    if (timeNow.getTime() - initSessao.getTime() <= 86400000)
       throw new HttpException(
         'Sessão tem que ser cadastrada um dia antes no mínimo',
         HttpStatus.BAD_REQUEST,
-      ); */
+      );
     const sala = await this.salaRepository.findOne(createSessao.salaId);
     if (!sala)
       throw new HttpException('Sala não encontrada', HttpStatus.BAD_REQUEST);

@@ -13,7 +13,7 @@ import { CreateTagDto } from '../dto/create-tag.dto';
 import { UpdateTagDto } from '../dto/update-tag.dto';
 import { JwtGuard } from '../../auth/guard/jwt.guard';
 
-UseGuards(JwtGuard);
+@UseGuards(JwtGuard)
 @Controller('tags')
 export class TagsController {
   constructor(private readonly tagsService: TagsService) {}

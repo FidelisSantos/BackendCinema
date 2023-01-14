@@ -55,4 +55,17 @@ export class StatusService {
       }
     });
   }
+
+  @Cron(CronExpression.EVERY_30_SECONDS)
+  async autoExcludeSession() {
+    const oneDay = 24 * 60 * 60 * 1000;
+    const sessoes = await this.sessaoRepository.findAll();
+    sessoes.forEach(async (sessao) => {
+      const today = new Date(Date.now());
+      const diff = (today.getTime() - sessao.finish.getTime()) / oneDay;
+      if (diff >= 6) {
+        await this.sessaoRepository.remove(sessao.id);
+      }
+    });
+  }
 }
