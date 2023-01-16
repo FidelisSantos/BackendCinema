@@ -116,6 +116,11 @@ export class SessaoService {
         'Data/Hora de inicio inválida',
         HttpStatus.BAD_REQUEST,
       );
+    if (sessao.init < timeNow)
+      throw new HttpException(
+        'Não pode editar sessão que já terminou',
+        HttpStatus.BAD_REQUEST,
+      );
     if (!sessao)
       throw new HttpException('Sessão não encontrada', HttpStatus.BAD_REQUEST);
     const sala = await this.salaRepository.findOne(updateSessaoDto.salaId);
@@ -144,9 +149,10 @@ export class SessaoService {
     const editSessao = new Sessao();
     editSessao.filme = filme;
     editSessao.sala = sala;
-    editSessao.init = updateSessaoDto.init
-      ? new Date(updateSessaoDto.init)
-      : new Date(Date.now());
+    if (sessao.status === 'Rodando')  editSessao.init = new Date(Date.now());
+    else if (updateSessaoDto.init) editSessao.init = new Date(updateSessaoDto.init);
+    else  editSessao.init = new Date(sessao.init);
+
     editSessao.finish = new Date(
       filme.tempoDeFilme * 60000 + editSessao.init.getTime(),
     );
