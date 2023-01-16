@@ -26,9 +26,14 @@ export class SessaoService {
         'Data/Hora de inicio inválida',
         HttpStatus.BAD_REQUEST,
       );
-    if (timeNow.getTime() - initSessao.getTime() <= 86400000)
+    if (initSessao.getTime() - timeNow.getTime() < 86400000)
       throw new HttpException(
         'Sessão tem que ser cadastrada um dia antes no mínimo',
+        HttpStatus.BAD_REQUEST,
+      );
+    if (initSessao.getHours() < 10 || initSessao.getHours() >= 23)
+      throw new HttpException(
+        'O inicio da sessão tem que ser cadastrado entre as 10:00h e 22:59h',
         HttpStatus.BAD_REQUEST,
       );
     const sala = await this.salaRepository.findOne(createSessao.salaId);
@@ -142,7 +147,6 @@ export class SessaoService {
     editSessao.init = updateSessaoDto.init
       ? new Date(updateSessaoDto.init)
       : new Date(Date.now());
-    console.log(editSessao.init);
     editSessao.finish = new Date(
       filme.tempoDeFilme * 60000 + editSessao.init.getTime(),
     );

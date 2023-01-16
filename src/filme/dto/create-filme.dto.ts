@@ -16,7 +16,7 @@ export class CreateFilmeDto {
   linkImagem: string;
 
   @IsString()
-  @Length(255)
+  @Length(10000)
   @IsNotEmpty()
   descricao: string;
 
@@ -24,6 +24,10 @@ export class CreateFilmeDto {
   @IsNotEmpty()
   tempoDeFilme: number;
 
+  @IsNotEmpty()
+  classificacao: string;
+
+  @IsString()
   @IsArray()
   tags: number[];
 }

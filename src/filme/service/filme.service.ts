@@ -18,26 +18,29 @@ export class FilmeService {
     private sessaoRepository: SessaoRepositoryService,
   ) {}
 
-  async create(createFilme: CreateFilmeDto) {
+  async create(createFilmeDto: CreateFilmeDto) {
     if (
-      !(await this.validation.validateLink(createFilme.linkImagem)) ||
-      !(await this.validation.validateTime(createFilme.tempoDeFilme))
+      !(await this.validation.validateLink(createFilmeDto.linkImagem)) ||
+      !(await this.validation.validateTime(createFilmeDto.tempoDeFilme))
     )
       throw new HttpException('Dados inválidos', HttpStatus.BAD_REQUEST);
 
-    if (await this.filmeRepository.exists(createFilme.titulo))
+    if (await this.filmeRepository.exists(createFilmeDto.titulo))
       throw new HttpException(
         'Já existe filme com esse titulo',
         HttpStatus.BAD_REQUEST,
       );
+    if (!createFilmeDto.tags.length)
+      throw new HttpException('Tags vazias', HttpStatus.BAD_REQUEST);
 
     const filme = new Filme();
-    filme.titulo = createFilme.titulo;
-    filme.descricao = createFilme.descricao;
-    filme.linkImagem = createFilme.linkImagem;
-    filme.tempoDeFilme = createFilme.tempoDeFilme;
+    filme.titulo = createFilmeDto.titulo;
+    filme.descricao = createFilmeDto.descricao;
+    filme.linkImagem = createFilmeDto.linkImagem;
+    filme.tempoDeFilme = createFilmeDto.tempoDeFilme;
+    filme.classificacao = createFilmeDto.classificacao;
     filme.tags = [];
-    createFilme.tags.forEach(async (idTag) => {
+    createFilmeDto.tags.forEach(async (idTag) => {
       const tag = await this.tagRepository.findOne(idTag);
       filme.tags.push(tag);
     });
@@ -49,9 +52,9 @@ export class FilmeService {
     return await this.filmeRepository.findAll();
   }
 
-  async update(id: number, updateFilme: UpdateFilmeDto) {
+  async update(id: number, updateFilmeDto: UpdateFilmeDto) {
     const searchTags: Tag[] = [];
-    if (!updateFilme)
+    if (!updateFilmeDto)
       throw new HttpException('Dados inválidos', HttpStatus.BAD_REQUEST);
     const filme = await this.findOne(id);
     if (await this.sessaoRepository.useFilme(filme))
@@ -60,27 +63,34 @@ export class FilmeService {
         HttpStatus.BAD_REQUEST,
       );
     const filmeUpdate = new Filme();
-    if (updateFilme.titulo) filmeUpdate.titulo = updateFilme.titulo;
-    if (updateFilme.descricao) filmeUpdate.descricao = updateFilme.descricao;
-    if (updateFilme.linkImagem) {
-      if (this.validation.validateLink(updateFilme.linkImagem))
-        filmeUpdate.linkImagem = updateFilme.linkImagem;
+    if (updateFilmeDto.titulo) filmeUpdate.titulo = updateFilmeDto.titulo;
+    if (updateFilmeDto.descricao)
+      filmeUpdate.descricao = updateFilmeDto.descricao;
+    if (updateFilmeDto.classificacao && +updateFilmeDto.classificacao != 0)
+      filmeUpdate.classificacao = updateFilmeDto.classificacao;
+    else filmeUpdate.classificacao = filme.classificacao;
+    if (updateFilmeDto.linkImagem) {
+      if (this.validation.validateLink(updateFilmeDto.linkImagem))
+        filmeUpdate.linkImagem = updateFilmeDto.linkImagem;
       else throw new HttpException('Invalid Link', HttpStatus.BAD_REQUEST);
     }
-    if (updateFilme.tempoDeFilme) {
+    if (updateFilmeDto.tempoDeFilme) {
       if (this.validation.validateTime(filmeUpdate.tempoDeFilme))
-        filmeUpdate.tempoDeFilme = updateFilme.tempoDeFilme;
+        filmeUpdate.tempoDeFilme = updateFilmeDto.tempoDeFilme;
       else throw new HttpException('Invalid Time', HttpStatus.BAD_REQUEST);
     }
     filmeUpdate.tags = [];
-    if (updateFilme.tags.length) {
-      for (let index = 0; index < updateFilme.tags.length; index++) {
-        const tag = await this.tagRepository.findOne(updateFilme.tags[index]);
+    if (updateFilmeDto.tags.length > 0) {
+      for (let index = 0; index < updateFilmeDto.tags.length; index++) {
+        const tag = await this.tagRepository.findOne(
+          updateFilmeDto.tags[index],
+        );
         searchTags.push(tag);
       }
       filmeUpdate.tags = searchTags;
+    } else {
+      filmeUpdate.tags = filme.tags;
     }
-
     return await this.filmeRepository.update(filme, filmeUpdate);
   }
 
