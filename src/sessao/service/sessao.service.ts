@@ -149,9 +149,10 @@ export class SessaoService {
     const editSessao = new Sessao();
     editSessao.filme = filme;
     editSessao.sala = sala;
-    if (sessao.status === 'Rodando')  editSessao.init = new Date(Date.now());
-    else if (updateSessaoDto.init) editSessao.init = new Date(updateSessaoDto.init);
-    else  editSessao.init = new Date(sessao.init);
+    if (sessao.status === 'Rodando') editSessao.init = new Date(Date.now());
+    else if (updateSessaoDto.init)
+      editSessao.init = new Date(updateSessaoDto.init);
+    else editSessao.init = new Date(sessao.init);
 
     editSessao.finish = new Date(
       filme.tempoDeFilme * 60000 + editSessao.init.getTime(),
