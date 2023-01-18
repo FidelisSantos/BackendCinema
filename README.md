@@ -13,3 +13,5 @@ Comandos para rodar Backend
 5- Para criar as migrações rodar o comando "migration:generate"
 6- Para gerar as migrações para o banco rodar "migration:run"
 7- Rodar novamente o comando "npm run start:dev" a aplicação estará rodando
+
+
