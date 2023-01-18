@@ -23,13 +23,17 @@ export class SessaoService {
   async create(createSessaoDto: CreateSessaoDto) {
     const timeNow = new Date(Date.now());
     const initSessao = new Date(createSessaoDto.init);
+    let timeSessao = initSessao.getHours();
+    if (timeSessao === 0) {
+      timeSessao = 24;
+    }
     if (initSessao < timeNow)
       throw new BadRequestError('Data/Hora de inicio inválida');
     if (initSessao.getTime() - timeNow.getTime() < 86400000)
       throw new BadRequestError(
         'Sessão tem que ser cadastrada um dia antes no mínimo',
       );
-    if (initSessao.getHours() < 10 || initSessao.getHours() >= 23)
+    if (timeSessao - 3 < 10 || timeSessao - 3 >= 23)
       throw new BadRequestError(
         'O inicio da sessão tem que ser cadastrado entre as 10:00h e 22:59h',
       );
