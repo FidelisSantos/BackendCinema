@@ -7,13 +7,17 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseFilters,
 } from '@nestjs/common';
 import { FilmeService } from '../service/filme.service';
 import { CreateFilmeDto } from '../dto/create-filme.dto';
 import { UpdateFilmeDto } from '../dto/update-filme.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
+import { BadRequestFilter } from 'src/http-excepitions/bad-request.filter';
+import { NotFoundFilter } from 'src/http-excepitions/not-found.filter';
 
 @UseGuards(JwtGuard)
+@UseFilters(BadRequestFilter, NotFoundFilter)
 @Controller('filme')
 export class FilmeController {
   constructor(private readonly filmeService: FilmeService) {}

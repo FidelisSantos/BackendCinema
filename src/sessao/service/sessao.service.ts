@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateSessaoDto } from '../dto/create-sessao.dto';
 import { UpdateSessaoDto } from '../dto/update-sessao.dto';
 import { SessaoRepositoryService } from '../../shared/repositorys/sessao-repository.service';
@@ -8,6 +8,8 @@ import { SessaoType } from '../types/SessaoType';
 import { FilmeRepositoryService } from '../../shared/repositorys/filme-repository.service';
 import { SalaRepositoryService } from '../../shared/repositorys/sala-repository.service';
 import { SessaoValidationService } from '../validation/sessao-validation.service';
+import { BadRequestError } from 'src/errors/bad-request.error';
+import { NotFoundError } from '../../errors/not-found.error';
 
 @Injectable()
 export class SessaoService {
@@ -18,49 +20,39 @@ export class SessaoService {
     private sessaoValidation: SessaoValidationService,
   ) {}
 
-  async create(createSessao: CreateSessaoDto) {
+  async create(createSessaoDto: CreateSessaoDto) {
     const timeNow = new Date(Date.now());
-    const initSessao = new Date(createSessao.init);
+    const initSessao = new Date(createSessaoDto.init);
     if (initSessao < timeNow)
-      throw new HttpException(
-        'Data/Hora de inicio inválida',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestError('Data/Hora de inicio inválida');
     if (initSessao.getTime() - timeNow.getTime() < 86400000)
-      throw new HttpException(
+      throw new BadRequestError(
         'Sessão tem que ser cadastrada um dia antes no mínimo',
-        HttpStatus.BAD_REQUEST,
       );
     if (initSessao.getHours() < 10 || initSessao.getHours() >= 23)
-      throw new HttpException(
+      throw new BadRequestError(
         'O inicio da sessão tem que ser cadastrado entre as 10:00h e 22:59h',
-        HttpStatus.BAD_REQUEST,
       );
-    const sala = await this.salaRepository.findOne(createSessao.salaId);
-    if (!sala)
-      throw new HttpException('Sala não encontrada', HttpStatus.BAD_REQUEST);
-    const filme = await this.filmeRepository.findOne(createSessao.filmeId);
-    if (!filme)
-      throw new HttpException('Filme não encontrado', HttpStatus.BAD_REQUEST);
+    const { sala, filme } = await this.findSalaAndFilme(
+      createSessaoDto.salaId,
+      createSessaoDto.filmeId,
+    );
 
     const sessoes = await this.sessaoRepository.findSalasNasSessoes(sala);
     if (sessoes.length) {
       if (
         !this.sessaoValidation.validateDateHourSessao(
           sessoes,
-          createSessao,
+          createSessaoDto,
           filme.tempoDeFilme,
         )
       )
-        throw new HttpException(
-          'Conflito com sessão já cadastrada',
-          HttpStatus.BAD_REQUEST,
-        );
+        throw new BadRequestError('Conflito com sessão já cadastrada');
     }
     const sessao = new Sessao();
     sessao.sala = sala;
     sessao.filme = filme;
-    sessao.init = new Date(createSessao.init);
+    sessao.init = new Date(createSessaoDto.init);
     sessao.finish = new Date(
       sessao.init.getTime() + filme.tempoDeFilme * 60000,
     );
@@ -112,24 +104,15 @@ export class SessaoService {
     const timeNow = new Date(Date.now());
     const initSessao = new Date(updateSessaoDto.init);
     if (initSessao < timeNow)
-      throw new HttpException(
-        'Data/Hora de inicio inválida',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestError('Data/Hora de inicio inválida');
     if (sessao.init < timeNow)
-      throw new HttpException(
-        'Não pode editar sessão que já terminou',
-        HttpStatus.BAD_REQUEST,
-      );
-    if (!sessao)
-      throw new HttpException('Sessão não encontrada', HttpStatus.BAD_REQUEST);
-    const sala = await this.salaRepository.findOne(updateSessaoDto.salaId);
-    if (!sala)
-      throw new HttpException('Sala não encontrada', HttpStatus.BAD_REQUEST);
-    const filme = await this.filmeRepository.findOne(updateSessaoDto.filmeId);
-    if (!filme)
-      throw new HttpException('Filme não encontrado', HttpStatus.BAD_REQUEST);
+      throw new BadRequestError('Não pode editar sessão que já terminou');
+    const { sala, filme } = await this.findSalaAndFilme(
+      updateSessaoDto.salaId,
+      updateSessaoDto.filmeId,
+    );
     const sessoes = await this.sessaoRepository.findSalasNasSessoes(sala);
+    if (!sessao) throw new BadRequestError('Sessão não encontrada');
     sessoes.forEach((sessao) => {
       if (sessao.id != id) sessoesEdit.push(sessao);
     });
@@ -141,10 +124,7 @@ export class SessaoService {
           filme.tempoDeFilme,
         )
       )
-        throw new HttpException(
-          'Conflito com sessão já cadastrada',
-          HttpStatus.BAD_REQUEST,
-        );
+        throw new BadRequestError('Conflito com sessão já cadastrada');
     }
     const editSessao = new Sessao();
     editSessao.filme = filme;
@@ -159,7 +139,7 @@ export class SessaoService {
     );
     const maintenance = new Date(sessao.finish.getTime() + 1800 * 1000);
     if (sessao.finish <= editSessao.init && maintenance >= editSessao.init)
-      throw new HttpException('Sala em manutenção', HttpStatus.BAD_REQUEST);
+      throw new BadRequestError('Sala em manutenção');
     await this.sessaoRepository.update(sessao, editSessao);
   }
 
@@ -167,10 +147,16 @@ export class SessaoService {
     const sessao = await this.sessaoRepository.findOne(id);
     const date = new Date(Date.now());
     if (sessao.init <= date && sessao.finish >= date)
-      throw new HttpException(
-        'Sessão em andamento não pode ser deletada',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestError('Sessão em andamento não pode ser deletada');
     else this.sessaoRepository.remove(id);
+  }
+
+  async findSalaAndFilme(salaId: number, filmeId: number) {
+    const sala = await this.salaRepository.findOne(salaId);
+    if (!sala) throw new NotFoundError('Sala não encontrada');
+    const filme = await this.filmeRepository.findOne(filmeId);
+    if (!filme) throw new NotFoundError('Filme não encontrado');
+
+    return { sala, filme };
   }
 }

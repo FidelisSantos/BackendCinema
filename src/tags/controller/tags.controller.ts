@@ -7,13 +7,17 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseFilters,
 } from '@nestjs/common';
 import { TagsService } from '../service/tags.service';
 import { CreateTagDto } from '../dto/create-tag.dto';
 import { UpdateTagDto } from '../dto/update-tag.dto';
 import { JwtGuard } from '../../auth/guard/jwt.guard';
+import { BadRequestFilter } from 'src/http-excepitions/bad-request.filter';
+import { NotFoundFilter } from 'src/http-excepitions/not-found.filter';
 
 @UseGuards(JwtGuard)
+@UseFilters(BadRequestFilter, NotFoundFilter)
 @Controller('tags')
 export class TagsController {
   constructor(private readonly tagsService: TagsService) {}

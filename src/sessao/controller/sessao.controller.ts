@@ -7,12 +7,16 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseFilters,
 } from '@nestjs/common';
 import { SessaoService } from '../service/sessao.service';
 import { CreateSessaoDto } from '../dto/create-sessao.dto';
 import { UpdateSessaoDto } from '../dto/update-sessao.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
+import { BadRequestFilter } from 'src/http-excepitions/bad-request.filter';
+import { NotFoundFilter } from 'src/http-excepitions/not-found.filter';
 @UseGuards(JwtGuard)
+@UseFilters(BadRequestFilter, NotFoundFilter)
 @Controller('sessao')
 export class SessaoController {
   constructor(private readonly sessaoService: SessaoService) {}
