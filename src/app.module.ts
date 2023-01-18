@@ -8,7 +8,7 @@ import { FilmeModule } from './filme/filme.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from './controller/app.controller';
-import { typeOrmConfig } from '../config/typeorm.config';
+import { typeOrmConfig } from './typeorm.config';
 import { TagsModule } from './tags/tags.module';
 import { SharedModule } from './shared/shared.module';
 import { StatusModule } from './status/status.module';

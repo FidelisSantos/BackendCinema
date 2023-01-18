@@ -3,13 +3,17 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { LoginType } from '../types/login.type';
 
+import * as env from 'dotenv';
+
+env.config();
+
 @Injectable()
 export class JwtStrategyService extends PassportStrategy(Strategy, 'jwt') {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: 'cinema123',
+      secretOrKey: process.env.JWT_KEY,
     });
   }
 
