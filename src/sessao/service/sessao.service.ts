@@ -5,8 +5,8 @@ import { SessaoRepositoryService } from '../../shared/repositorys/sessao-reposit
 import { Sessao } from '../entities/sessao.entity';
 import { FilmeSessao } from '../types/filmeSessao';
 import { SessaoType } from '../types/SessaoType';
-import { FilmeRepositoryService } from '../../shared/repositorys/filme-repository.service';
-import { SalaRepositoryService } from '../../shared/repositorys/sala-repository.service';
+import { MovieRepository } from '../../shared/repositorys/movie-repository';
+import { RoomRepository } from '../../shared/repositorys/room-repository';
 import { SessaoValidationService } from '../validation/sessao-validation.service';
 import { BadRequestError } from 'src/errors/bad-request.error';
 import { NotFoundError } from '../../errors/not-found.error';
@@ -14,8 +14,8 @@ import { NotFoundError } from '../../errors/not-found.error';
 @Injectable()
 export class SessaoService {
   constructor(
-    private salaRepository: SalaRepositoryService,
-    private filmeRepository: FilmeRepositoryService,
+    private roomRepository: RoomRepository,
+    private movieRepository: MovieRepository,
     private sessaoRepository: SessaoRepositoryService,
     private sessaoValidation: SessaoValidationService,
   ) {}
@@ -156,9 +156,9 @@ export class SessaoService {
   }
 
   async findSalaAndFilme(salaId: number, filmeId: number) {
-    const sala = await this.salaRepository.findOne(salaId);
+    const sala = await this.roomRepository.findOne(salaId);
     if (!sala) throw new NotFoundError('Sala não encontrada');
-    const filme = await this.filmeRepository.findOne(filmeId);
+    const filme = await this.movieRepository.findOne(filmeId);
     if (!filme) throw new NotFoundError('Filme não encontrado');
 
     return { sala, filme };

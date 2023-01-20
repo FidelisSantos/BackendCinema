@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { SalaModule } from './sala/sala.module';
+import { SalaModule } from './rooms/room.module';
 import { SessaoModule } from './sessao/sessao.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { FilmeModule } from './filme/filme.module';
+import { MoviesModule } from './movies/movie.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from './controller/app.controller';
@@ -12,7 +12,7 @@ import { typeOrmConfig } from './typeorm.config';
 import { TagsModule } from './tags/tags.module';
 import { SharedModule } from './shared/shared.module';
 import { StatusModule } from './status/status.module';
-import { FilmeSessaoModule } from './filme-sessao/filme-sessao.module';
+import { MovieSessionsModule } from './movie-sessions/movie-sessions.module';
 
 @Module({
   imports: [
@@ -23,10 +23,10 @@ import { FilmeSessaoModule } from './filme-sessao/filme-sessao.module';
     SalaModule,
     UserModule,
     AuthModule,
-    FilmeModule,
+    MoviesModule,
     SessaoModule,
     TagsModule,
-    FilmeSessaoModule,
+    MovieSessionsModule,
   ],
   controllers: [AppController],
 })

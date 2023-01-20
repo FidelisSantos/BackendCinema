@@ -6,8 +6,8 @@ import {
   PrimaryColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Sala } from '../../sala/entities/sala.entity';
-import { Filme } from '../../filme/entities/filme.entity';
+import { Room } from '../../rooms/entities/room.entity';
+import { Movie } from '../../movies/entities/movie.entity';
 import { StatusSessaoEnum } from '../enum/status-sessao.enum';
 
 @Entity()
@@ -16,15 +16,15 @@ export class Sessao {
   @PrimaryColumn()
   id: number;
 
-  @ManyToOne<Sala>(() => Sala, (sala) => sala.id)
+  @ManyToOne<Room>(() => Room, (room) => room.id)
   @JoinColumn({
     name: 'salaId',
   })
-  sala: Sala;
+  sala: Room;
 
-  @ManyToOne<Filme>(() => Filme, (filme) => filme.id)
-  @JoinColumn({ name: 'filmeId' })
-  filme: Filme;
+  @ManyToOne<Movie>(() => Movie, (movie) => movie.id)
+  @JoinColumn({ name: 'movieId' })
+  filme: Movie;
 
   @Column({ nullable: false })
   init: Date;

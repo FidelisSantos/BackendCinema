@@ -33,4 +33,8 @@ export class TagsRepositoryService {
   async tagExists(tag: string) {
     return (await this.tagRepository.findBy({ tag })).length > 0;
   }
+
+  async idExists(id: number) {
+    return await this.tagRepository.findOneBy({ id });
+  }
 }

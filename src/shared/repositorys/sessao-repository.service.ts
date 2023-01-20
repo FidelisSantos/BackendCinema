@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Sessao } from '../../sessao/entities/sessao.entity';
 import { Repository } from 'typeorm';
 import { StatusSessaoEnum } from '../../sessao/enum/status-sessao.enum';
-import { Filme } from 'src/filme/entities/filme.entity';
-import { Sala } from 'src/sala/entities/sala.entity';
+import { Room } from '../../rooms/entities/room.entity';
+import { Movie } from '../../movies/entities/movie.entity';
 
 @Injectable()
 export class SessaoRepositoryService {
@@ -37,17 +37,17 @@ export class SessaoRepositoryService {
     return await this.sessaoRepository.findOneBy({ id });
   }
 
-  async useFilme(filme: Filme) {
+  async useFilme(filme: Movie) {
     return (await this.sessaoRepository.findBy({ filme })).length
       ? true
       : false;
   }
 
-  async useSala(sala: Sala) {
+  async useSala(sala: Room) {
     return (await this.sessaoRepository.findBy({ sala })).length ? true : false;
   }
 
-  async findSalasNasSessoes(sala: Sala) {
+  async findSalasNasSessoes(sala: Room) {
     const sessoes = await this.sessaoRepository.findBy({ sala });
     return sessoes;
   }

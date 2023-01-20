@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { SessaoRepositoryService } from '../../shared/repositorys/sessao-repository.service';
-import { SalaRepositoryService } from '../../shared/repositorys/sala-repository.service';
-import { StatusSalaEnum } from 'src/sala/enum/status-sala.enum';
+import { RoomRepository } from '../../shared/repositorys/room-repository';
 import { StatusSessaoEnum } from 'src/sessao/enum/status-sessao.enum';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { StatusRoomEnum } from '../../rooms/enum/status-room.enum';
 
 @Injectable()
 export class StatusService {
   constructor(
     private sessaoRepository: SessaoRepositoryService,
-    private salaRepository: SalaRepositoryService,
+    private roomRepository: RoomRepository,
   ) {
     this.updateStatusSalaSessao();
   }
@@ -21,18 +21,18 @@ export class StatusService {
       const today = new Date(Date.now());
       const maintenance = new Date(sessao.finish.getTime() + 1800 * 1000);
       if (sessao.init <= today && sessao.finish >= today) {
-        if (sessao.sala.status != StatusSalaEnum.RUN)
-          await this.salaRepository.update(sessao.sala, StatusSalaEnum.RUN);
+        if (sessao.sala.status != StatusRoomEnum.RUN)
+          await this.roomRepository.update(sessao.sala, StatusRoomEnum.RUN);
         if (sessao.status != StatusSessaoEnum.RUN)
           await this.sessaoRepository.updateStatus(
             sessao,
             StatusSessaoEnum.RUN,
           );
       } else if (sessao.finish <= today && maintenance >= today) {
-        if (sessao.sala.status != StatusSalaEnum.MAINTENANCE)
-          await this.salaRepository.update(
+        if (sessao.sala.status != StatusRoomEnum.MAINTENANCE)
+          await this.roomRepository.update(
             sessao.sala,
-            StatusSalaEnum.MAINTENANCE,
+            StatusRoomEnum.MAINTENANCE,
           );
         if (sessao.status != StatusSessaoEnum.FINISH)
           await this.sessaoRepository.updateStatus(
@@ -40,8 +40,8 @@ export class StatusService {
             StatusSessaoEnum.FINISH,
           );
       } else {
-        if (sessao.sala.status != StatusSalaEnum.FREE)
-          await this.salaRepository.update(sessao.sala, StatusSalaEnum.FREE);
+        if (sessao.sala.status != StatusRoomEnum.FREE)
+          await this.roomRepository.update(sessao.sala, StatusRoomEnum.FREE);
         if (sessao.init > today && sessao.status != StatusSessaoEnum.WAITING)
           await this.sessaoRepository.updateStatus(
             sessao,

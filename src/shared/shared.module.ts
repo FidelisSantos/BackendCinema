@@ -2,26 +2,26 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Sessao } from 'src/sessao/entities/sessao.entity';
-import { Sala } from '../sala/entities/sala.entity';
+import { Room } from '../rooms/entities/room.entity';
 import { Tag } from '../tags/entities/tag.entity';
-import { Filme } from 'src/filme/entities/filme.entity';
 import { SessaoRepositoryService } from './repositorys/sessao-repository.service';
-import { SalaRepositoryService } from './repositorys/sala-repository.service';
-import { FilmeRepositoryService } from './repositorys/filme-repository.service';
+import { RoomRepository } from './repositorys/room-repository';
+import { MovieRepository } from './repositorys/movie-repository';
 import { TagsRepositoryService } from './repositorys/tags-repository.service';
+import { Movie } from '../movies/entities/movie.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Sessao, Sala, Tag, Filme])],
+  imports: [TypeOrmModule.forFeature([Sessao, Room, Tag, Movie])],
   providers: [
     SessaoRepositoryService,
-    SalaRepositoryService,
-    FilmeRepositoryService,
+    RoomRepository,
+    MovieRepository,
     TagsRepositoryService,
   ],
   exports: [
     SessaoRepositoryService,
-    SalaRepositoryService,
-    FilmeRepositoryService,
+    RoomRepository,
+    MovieRepository,
     TagsRepositoryService,
   ],
 })

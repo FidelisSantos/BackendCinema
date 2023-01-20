@@ -1,7 +1,7 @@
 import { SessaoType } from './SessaoType';
-import { Filme } from '../../filme/entities/filme.entity';
+import { Movie } from '../../movies/entities/movie.entity';
 
 export class FilmeSessao {
-  filme: Filme;
+  filme: Movie;
   sessoes: SessaoType[];
 }

@@ -3,7 +3,7 @@ import { CreateTagDto } from '../dto/create-tag.dto';
 import { UpdateTagDto } from '../dto/update-tag.dto';
 import { TagsRepositoryService } from '../../shared/repositorys/tags-repository.service';
 import { Tag } from '../entities/tag.entity';
-import { FilmeRepositoryService } from '../../shared/repositorys/filme-repository.service';
+import { MovieRepository } from '../../shared/repositorys/movie-repository';
 import { NotFoundError } from '../../errors/not-found.error';
 import { BadRequestError } from 'src/errors/bad-request.error';
 
@@ -11,7 +11,7 @@ import { BadRequestError } from 'src/errors/bad-request.error';
 export class TagsService {
   constructor(
     private tagRepository: TagsRepositoryService,
-    private filmeRepository: FilmeRepositoryService,
+    private movieRepository: MovieRepository,
   ) {}
 
   async create(createTagDto: CreateTagDto) {
@@ -43,7 +43,7 @@ export class TagsService {
 
   async remove(id: number) {
     const tag = await this.tagRepository.findOne(id);
-    if (await this.filmeRepository.useTag(tag))
+    if (await this.movieRepository.useTag(tag))
       throw new BadRequestError('Tag em uso');
     return this.tagRepository.remove(id);
   }
