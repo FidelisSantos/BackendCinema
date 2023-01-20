@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Sessao } from '../../sessao/entities/sessao.entity';
+import { Session } from '../../session/entities/session.entity';
 import { Repository } from 'typeorm';
-import { StatusSessaoEnum } from '../../sessao/enum/status-sessao.enum';
+import { StatusSessionEnum } from '../../session/enum/status-session.enum';
 import { Room } from '../../rooms/entities/room.entity';
 import { Movie } from '../../movies/entities/movie.entity';
 
 @Injectable()
-export class SessaoRepositoryService {
+export class SessionRepository {
   constructor(
-    @InjectRepository(Sessao)
-    private sessaoRepository: Repository<Sessao>,
+    @InjectRepository(Session)
+    private sessaoRepository: Repository<Session>,
   ) {}
 
-  async create(newSessao: Sessao) {
+  async create(newSessao: Session) {
     return await this.sessaoRepository.save(newSessao);
   }
 
@@ -26,7 +26,7 @@ export class SessaoRepositoryService {
     });
   }
 
-  async findFilmeSessao(filmeId: number) {
+  async findMovieSessions(filmeId: number) {
     return await this.sessaoRepository
       .createQueryBuilder('sessao')
       .where('sessao.filmeId = :filmeId', { filmeId: filmeId })
@@ -37,17 +37,17 @@ export class SessaoRepositoryService {
     return await this.sessaoRepository.findOneBy({ id });
   }
 
-  async useFilme(filme: Movie) {
+  async useMovie(filme: Movie) {
     return (await this.sessaoRepository.findBy({ filme })).length
       ? true
       : false;
   }
 
-  async useSala(sala: Room) {
+  async useRoom(sala: Room) {
     return (await this.sessaoRepository.findBy({ sala })).length ? true : false;
   }
 
-  async findSalasNasSessoes(sala: Room) {
+  async findRoomInSessions(sala: Room) {
     const sessoes = await this.sessaoRepository.findBy({ sala });
     return sessoes;
   }
@@ -56,7 +56,7 @@ export class SessaoRepositoryService {
     return (await this.sessaoRepository.findOneBy({ id })) ? true : false;
   }
 
-  async update(sessao: Sessao, editSessao: Sessao) {
+  async update(sessao: Session, editSessao: Session) {
     return await this.sessaoRepository.update(sessao, editSessao);
   }
 
@@ -64,7 +64,7 @@ export class SessaoRepositoryService {
     return await this.sessaoRepository.delete({ id });
   }
 
-  async updateStatus(sessao: Sessao, status: StatusSessaoEnum) {
+  async updateStatus(sessao: Session, status: StatusSessionEnum) {
     return await this.sessaoRepository.update(sessao, { status });
   }
 }

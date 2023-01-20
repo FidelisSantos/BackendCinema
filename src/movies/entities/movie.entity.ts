@@ -29,7 +29,7 @@ export class Movie {
 
   @ManyToMany(() => Tag, { eager: true, nullable: false })
   @JoinTable({
-    name: 'filmeTags',
+    name: 'movieTags',
     synchronize: true,
   })
   tags: Tag[];

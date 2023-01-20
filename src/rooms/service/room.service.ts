@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { RoomRepository } from '../../shared/repositorys/room-repository';
 import { Room } from '../entities/room.entity';
-import { SessaoRepositoryService } from 'src/shared/repositorys/sessao-repository.service';
 import { BadRequestError } from '../../errors/bad-request.error';
 import { NotFoundError } from '../../errors/not-found.error';
+import { SessionRepository } from '../../shared/repositorys/session-repository';
 
 @Injectable()
 export class RoomService {
   constructor(
     private roomRepository: RoomRepository,
-    private sessaoRepository: SessaoRepositoryService,
+    private sessionRepository: SessionRepository,
   ) {}
 
   async create() {
@@ -23,7 +23,7 @@ export class RoomService {
 
   async remove(id: number) {
     const sala = await this.findOne(id);
-    if (await this.sessaoRepository.useSala(sala))
+    if (await this.sessionRepository.useRoom(sala))
       throw new BadRequestError('Sala cadastrada em uma sessão');
     const response = await this.roomRepository.remove(sala);
     return response;

@@ -1,21 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMovieDto } from '../dto/create-movie.dto';
 import { UpdateMovieDto } from '../dto/update-movie.dto';
-
 import { Movie } from '../entities/movie.entity';
 import { MovieRepository } from '../../shared/repositorys/movie-repository';
-import { TagsRepositoryService } from 'src/shared/repositorys/tags-repository.service';
-import { SessaoRepositoryService } from 'src/shared/repositorys/sessao-repository.service';
-import { Tag } from 'src/tags/entities/tag.entity';
-import { BadRequestError } from 'src/errors/bad-request.error';
+import { Tag } from '../../tags/entities/tag.entity';
+import { BadRequestError } from '../../errors/bad-request.error';
 import { NotFoundError } from '../../errors/not-found.error';
+import { TagRepository } from '../..//shared/repositorys/tag-repository';
+import { SessionRepository } from 'src/shared/repositorys/session-repository';
 
 @Injectable()
 export class MovieService {
   constructor(
     private movieRepository: MovieRepository,
-    private tagRepository: TagsRepositoryService,
-    private sessaoRepository: SessaoRepositoryService,
+    private tagRepository: TagRepository,
+    private sessionRepository: SessionRepository,
   ) {}
 
   async create(createMovieDto: CreateMovieDto) {
@@ -24,7 +23,7 @@ export class MovieService {
     await this.validateTitle(createMovieDto.titulo);
     const tags = await this.searchTags(createMovieDto.tags);
 
-    const movie = new Movie();
+    const movie = this.createMovie();
     movie.titulo = createMovieDto.titulo;
     movie.descricao = createMovieDto.descricao;
     movie.linkImagem = createMovieDto.linkImagem;
@@ -45,7 +44,7 @@ export class MovieService {
     await this.validateTitle(updateMovieDto.titulo);
     const tags = await this.searchTags(updateMovieDto.tags);
 
-    const updateMovie = new Movie();
+    const updateMovie = this.createMovie();
     updateMovie.titulo = updateMovieDto.titulo;
     updateMovie.descricao = updateMovieDto.descricao;
     updateMovie.linkImagem = updateMovieDto.linkImagem;
@@ -82,7 +81,7 @@ export class MovieService {
   }
 
   private async validateUpdateOrDelete(movie: Movie) {
-    if (await this.sessaoRepository.useFilme(movie))
+    if (await this.sessionRepository.useMovie(movie))
       throw new BadRequestError('Filme cadastrado em uma sessão');
   }
 
@@ -94,12 +93,18 @@ export class MovieService {
   private async searchTags(tags: number[]) {
     const searchTags: Tag[] = [];
     if (!tags.length) throw new NotFoundError('Tags vazias');
-    tags.forEach(async (idTag) => {
-      const tag = await this.tagRepository.findOne(idTag);
-      if (!tag) throw new NotFoundError('Tag bçao encontrada');
+    for (let index = 0; index < tags.length; index++) {
+      const tag = await this.tagRepository.findOne(tags[index]);
+      if (!tag) {
+        throw new NotFoundError('Tag não encontrada');
+      }
       searchTags.push(tag);
-    });
-
+    }
+    if (!searchTags.length) throw new NotFoundError('Tag não encontrada');
     return searchTags;
+  }
+
+  private createMovie() {
+    return new Movie();
   }
 }

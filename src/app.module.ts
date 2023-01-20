@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { SalaModule } from './rooms/room.module';
-import { SessaoModule } from './sessao/sessao.module';
+import { SessionModule } from './session/session.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
@@ -9,7 +9,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from './controller/app.controller';
 import { typeOrmConfig } from './typeorm.config';
-import { TagsModule } from './tags/tags.module';
+import { TagModule } from './tags/tag.module';
 import { SharedModule } from './shared/shared.module';
 import { StatusModule } from './status/status.module';
 import { MovieSessionsModule } from './movie-sessions/movie-sessions.module';
@@ -24,8 +24,8 @@ import { MovieSessionsModule } from './movie-sessions/movie-sessions.module';
     UserModule,
     AuthModule,
     MoviesModule,
-    SessaoModule,
-    TagsModule,
+    SessionModule,
+    TagModule,
     MovieSessionsModule,
   ],
   controllers: [AppController],

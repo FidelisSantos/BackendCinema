@@ -8,17 +8,17 @@ import {
 } from 'typeorm';
 import { Room } from '../../rooms/entities/room.entity';
 import { Movie } from '../../movies/entities/movie.entity';
-import { StatusSessaoEnum } from '../enum/status-sessao.enum';
+import { StatusSessionEnum } from '../enum/status-session.enum';
 
 @Entity()
-export class Sessao {
+export class Session {
   @PrimaryGeneratedColumn('increment')
   @PrimaryColumn()
   id: number;
 
   @ManyToOne<Room>(() => Room, (room) => room.id)
   @JoinColumn({
-    name: 'salaId',
+    name: 'roomId',
   })
   sala: Room;
 
@@ -32,6 +32,6 @@ export class Sessao {
   @Column({ nullable: false })
   finish: Date;
 
-  @Column({ nullable: false, default: StatusSessaoEnum.WAITING })
-  status: StatusSessaoEnum;
+  @Column({ nullable: false, default: StatusSessionEnum.WAITING })
+  status: StatusSessionEnum;
 }

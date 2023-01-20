@@ -1,4 +1,4 @@
-export enum StatusSessaoEnum {
+export enum StatusSessionEnum {
   FINISH = 'Terminado',
   RUN = 'Rodando',
   WAITING = 'Aguardando',

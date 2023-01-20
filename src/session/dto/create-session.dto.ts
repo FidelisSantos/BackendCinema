@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsNumber } from 'class-validator';
 
-export class CreateSessaoDto {
+export class CreateSessionDto {
   @IsNotEmpty()
   @IsNumber()
   salaId: number;

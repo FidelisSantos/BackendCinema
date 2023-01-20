@@ -33,7 +33,7 @@ export class MovieRepository {
   }
 
   async update(filme: Movie, updateFilme: Movie) {
-    await this.filmeRepository.manager.delete('filmeTags', {
+    await this.filmeRepository.manager.delete('movieTags', {
       filmeId: filme.id,
     });
     await this.remove(filme);
