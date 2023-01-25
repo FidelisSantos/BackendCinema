@@ -10,8 +10,7 @@ import {
   UseFilters,
 } from '@nestjs/common';
 import { SessionService } from '../service/session.service';
-import { CreateSessionDto } from '../dto/create-session.dto';
-import { UpdateSessionDto } from '../dto/update-session.dto';
+import { SessionDto } from '../dto/session.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { BadRequestFilter } from 'src/http-excepitions/bad-request.filter';
 import { NotFoundFilter } from 'src/http-excepitions/not-found.filter';
@@ -23,8 +22,8 @@ export class SessaoController {
   constructor(private readonly sessionService: SessionService) {}
 
   @Post()
-  create(@Body() createSessaoDto: CreateSessionDto) {
-    return this.sessionService.create(createSessaoDto);
+  create(@Body() sessionDto: SessionDto) {
+    return this.sessionService.create(sessionDto);
   }
 
   @Get()
@@ -33,12 +32,12 @@ export class SessaoController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSessaoDto: UpdateSessionDto) {
-    return this.sessionService.update(+id, updateSessaoDto);
+  update(@Param('id') id: number, @Body() sessionDto: SessionDto) {
+    return this.sessionService.update(id, sessionDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sessionService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.sessionService.remove(id);
   }
 }

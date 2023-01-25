@@ -10,33 +10,33 @@ export class MovieSessionsService {
   async findMovieSessions() {
     const oneDay = 24 * 60 * 60 * 1000;
     const today = new Date(Date.now());
-    const sessoes = await this.sessionRepository.findAll();
-    const filmeSessoes: MovieSessions[] = [];
-    for (let i = 0; i < sessoes.length; i++) {
-      const index = filmeSessoes.findIndex(
-        (movieSession) => movieSession.filme.id == sessoes[i].filme.id,
+    const sessions = await this.sessionRepository.findAll();
+    const movieSessions: MovieSessions[] = [];
+    for (let i = 0; i < sessions.length; i++) {
+      const index = movieSessions.findIndex(
+        (movieSession) => movieSession.filme.id == sessions[i].movie.id,
       );
-      const initsession = new Date(sessoes[i].init);
+      const initsession = new Date(sessions[i].init);
       const diff = (today.getTime() - initsession.getTime()) / oneDay;
       if (diff > -10 && diff < 5) {
         const session: SessionType = {
-          sessaoId: sessoes[i].id,
-          salaId: sessoes[i].sala.id,
-          inicio: sessoes[i].init,
-          fim: sessoes[i].finish,
-          status: sessoes[i].status,
+          sessionId: sessions[i].id,
+          roomId: sessions[i].room.id,
+          init: sessions[i].init,
+          finish: sessions[i].finish,
+          status: sessions[i].status,
         };
         if (index >= 0) {
-          filmeSessoes[index].sessoes.push(session);
+          movieSessions[index].sessoes.push(session);
         } else {
-          const filmesession = new MovieSessions();
-          filmesession.filme = sessoes[i].filme;
-          filmesession.sessoes = [];
-          filmesession.sessoes.push(session);
-          filmeSessoes.push(filmesession);
+          const movieSession = new MovieSessions();
+          movieSession.filme = sessions[i].movie;
+          movieSession.sessoes = [];
+          movieSession.sessoes.push(session);
+          movieSessions.push(movieSession);
         }
       }
     }
-    return filmeSessoes;
+    return movieSessions;
   }
 }

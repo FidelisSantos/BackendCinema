@@ -6,9 +6,9 @@ import {
   PrimaryColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Room } from '../../rooms/entities/room.entity';
-import { Movie } from '../../movies/entities/movie.entity';
-import { StatusSessionEnum } from '../enum/status-session.enum';
+import { Room } from './room.entity';
+import { Movie } from './movie.entity';
+import { StatusSessionEnum } from '../../sessions/enum/status-session.enum';
 
 @Entity()
 export class Session {
@@ -20,11 +20,11 @@ export class Session {
   @JoinColumn({
     name: 'roomId',
   })
-  sala: Room;
+  room: Room;
 
   @ManyToOne<Movie>(() => Movie, (movie) => movie.id)
   @JoinColumn({ name: 'movieId' })
-  filme: Movie;
+  movie: Movie;
 
   @Column({ nullable: false })
   init: Date;

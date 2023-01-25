@@ -1,24 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { CreateTagDto } from '../dto/create-tag.dto';
-import { UpdateTagDto } from '../dto/update-tag.dto';
+import { TagDto } from '../dto/tag.dto';
 import { TagRepository } from '../../shared/repositorys/tag-repository';
-import { Tag } from '../entities/tag.entity';
+
 import { MovieRepository } from '../../shared/repositorys/movie-repository';
 import { NotFoundError } from '../../errors/not-found.error';
 import { BadRequestError } from 'src/errors/bad-request.error';
+import { MappingService } from 'src/shared/mapping/mapping.service';
 
 @Injectable()
 export class TagService {
   constructor(
     private tagRepository: TagRepository,
     private movieRepository: MovieRepository,
+    private mapping: MappingService,
   ) {}
 
-  async create(createTagDto: CreateTagDto) {
-    if (await this.tagRepository.tagExists(createTagDto.tag))
+  async create(tagDto: TagDto) {
+    if (await this.tagRepository.tagExists(tagDto.tag))
       throw new BadRequestError('Tag já existe');
-    const tag = new Tag();
-    tag.tag = createTagDto.tag;
+    const tag = this.mapping.TagDtoToTag(tagDto);
     return await this.tagRepository.create(tag);
   }
 
@@ -32,13 +32,11 @@ export class TagService {
     return tag;
   }
 
-  async update(id: number, updateTagDto: UpdateTagDto) {
+  async update(id: number, tagDto: TagDto) {
     const tag = await this.searchTag(id);
-    if (await this.tagRepository.tagExists(updateTagDto.tag))
+    if (await this.tagRepository.tagExists(tagDto.tag))
       throw new BadRequestError('Tag já existe');
-    const updateTag = new Tag();
-    updateTag.tag = updateTagDto.tag;
-    return await this.tagRepository.update(tag, updateTag);
+    return await this.tagRepository.update(tag, tagDto.tag);
   }
 
   async remove(id: number) {

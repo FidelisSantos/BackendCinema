@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Tag } from '../../tags/entities/tag.entity';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Tag } from '../entities/tag.entity';
 
 @Injectable()
 export class TagRepository {
@@ -22,8 +23,8 @@ export class TagRepository {
     return await this.tagRepository.findOneBy({ id });
   }
 
-  async update(tag: Tag, updateTag: Tag) {
-    return await this.tagRepository.update(tag, updateTag);
+  async update(tag: Tag, newTag: string) {
+    return await this.tagRepository.update(tag, { tag: newTag });
   }
 
   async remove(id: number) {

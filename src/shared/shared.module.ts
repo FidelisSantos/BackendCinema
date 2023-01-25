@@ -1,14 +1,15 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { Session } from '../session/entities/session.entity';
-import { Room } from '../rooms/entities/room.entity';
-import { Tag } from '../tags/entities/tag.entity';
 import { SessionRepository } from './repositorys/session-repository';
 import { RoomRepository } from './repositorys/room-repository';
 import { MovieRepository } from './repositorys/movie-repository';
 import { TagRepository } from './repositorys/tag-repository';
-import { Movie } from '../movies/entities/movie.entity';
+import { Session } from './entities/session.entity';
+import { Room } from './entities/room.entity';
+import { Tag } from './entities/tag.entity';
+import { Movie } from './entities/movie.entity';
+import { MappingService } from 'src/shared/mapping/mapping.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Session, Room, Tag, Movie])],
@@ -17,7 +18,14 @@ import { Movie } from '../movies/entities/movie.entity';
     RoomRepository,
     MovieRepository,
     TagRepository,
+    MappingService,
   ],
-  exports: [SessionRepository, RoomRepository, MovieRepository, TagRepository],
+  exports: [
+    SessionRepository,
+    RoomRepository,
+    MovieRepository,
+    TagRepository,
+    MappingService,
+  ],
 })
 export class SharedModule {}

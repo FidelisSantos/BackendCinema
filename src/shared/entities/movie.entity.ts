@@ -5,7 +5,7 @@ import {
   ManyToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Tag } from '../../tags/entities/tag.entity';
+import { Tag } from './tag.entity';
 
 @Entity()
 export class Movie {
@@ -13,19 +13,19 @@ export class Movie {
   id: number;
 
   @Column({ nullable: false, unique: true })
-  titulo: string;
+  title: string;
 
   @Column({ nullable: false, length: '1000' })
-  linkImagem: string;
+  imageLink: string;
 
   @Column({ nullable: false, length: '10000' })
-  descricao: string;
+  description: string;
 
   @Column({ nullable: false })
-  tempoDeFilme: number;
+  movieTime: number;
 
   @Column({ nullable: false })
-  classificacao: string;
+  classification: string;
 
   @ManyToMany(() => Tag, { eager: true, nullable: false })
   @JoinTable({

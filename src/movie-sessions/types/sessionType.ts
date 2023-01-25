@@ -1,9 +1,9 @@
-import { StatusSessionEnum } from '../../session/enum/status-session.enum';
+import { StatusSessionEnum } from '../../sessions/enum/status-session.enum';
 
 export type SessionType = {
-  sessaoId: number;
-  salaId: number;
-  inicio: Date;
-  fim: Date;
+  sessionId: number;
+  roomId: number;
+  init: Date;
+  finish: Date;
   status: StatusSessionEnum;
 };

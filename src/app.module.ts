@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { SalaModule } from './rooms/room.module';
-import { SessionModule } from './session/session.module';
+import { SessionModule } from './sessions/session.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';

@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { CreateSessionDto } from '../dto/create-session.dto';
-import { UpdateSessionDto } from '../dto/update-session.dto';
-import { Session } from '../entities/session.entity';
+import { SessionDto } from '../dto/session.dto';
 import { MovieRepository } from '../../shared/repositorys/movie-repository';
 import { RoomRepository } from '../../shared/repositorys/room-repository';
 import { BadRequestError } from '../../errors/bad-request.error';
 import { NotFoundError } from '../../errors/not-found.error';
 import { SessionRepository } from '../../shared/repositorys/session-repository';
-import { Room } from '../../rooms/entities/room.entity';
+import { MappingService } from 'src/shared/mapping/mapping.service';
+import { SessionInitFinish } from '../types/session-init-finish';
 
 @Injectable()
 export class SessionService {
@@ -15,26 +14,23 @@ export class SessionService {
     private roomRepository: RoomRepository,
     private movieRepository: MovieRepository,
     private sessionRepository: SessionRepository,
+    private mapping: MappingService,
   ) {}
 
-  async create(createSessionDto: CreateSessionDto) {
-    const init = this.convertToDate(createSessionDto.init);
+  async create(sessionDto: SessionDto) {
+    const init = this.convertToDate(sessionDto.init);
     this.validateInit(init);
-    const { sala, filme } = await this.searchSalaAndFilme(
-      createSessionDto.salaId,
-      createSessionDto.filmeId,
+    const { room, movie } = await this.searchSalaAndFilme(
+      sessionDto.salaId,
+      sessionDto.filmeId,
     );
-    const sessions = await this.searchRoomInSessions(sala);
+    const finish = new Date(init.getTime() + movie.movieTime * 60000);
+    const sessions = await this.searchRoomInSessions(room.id);
     if (sessions.length) {
-      this.validateDateHourSession(sessions, init, filme.tempoDeFilme);
+      this.validateDateHourSession(sessions, init, movie.movieTime);
     }
-    const session = new Session();
-    session.sala = sala;
-    session.filme = filme;
-    session.init = init;
-    session.finish = new Date(
-      session.init.getTime() + filme.tempoDeFilme * 60000,
-    );
+    const session = this.mapping.SessionDtoToSession(room, movie, init, finish);
+
     return await this.sessionRepository.create(session);
   }
 
@@ -48,30 +44,27 @@ export class SessionService {
     return session;
   }
 
-  async findFilmeSession(filmeId: number) {
-    return this.sessionRepository.findMovieSessions(filmeId);
-  }
-
-  async update(id: number, updateSessionDto: UpdateSessionDto) {
-    const init = this.convertToDate(updateSessionDto.init);
+  async update(id: number, sessionDto: SessionDto) {
+    const init = this.convertToDate(sessionDto.init);
     const session = await this.findOne(id);
     this.validateInit(init);
-    this.validateUpdate(session);
-    const { sala, filme } = await this.searchSalaAndFilme(
-      updateSessionDto.salaId,
-      updateSessionDto.filmeId,
+    this.validateUpdate(session.finish);
+    const { room, movie } = await this.searchSalaAndFilme(
+      sessionDto.salaId,
+      sessionDto.filmeId,
     );
-    const sessions = await this.searchRoomInSessions(sala, id);
+    const sessions = await this.searchRoomInSessions(room.id, id);
     if (sessions.length) {
-      this.validateDateHourSession(sessions, init, filme.tempoDeFilme);
+      this.validateDateHourSession(sessions, init, movie.movieTime);
     }
-    const editSession = new Session();
-    editSession.filme = filme;
-    editSession.sala = sala;
-    editSession.init = init;
-    editSession.finish = new Date(
-      filme.tempoDeFilme * 60000 + editSession.init.getTime(),
+    const finish = new Date(init.getTime() + movie.movieTime * 60000);
+    const editSession = this.mapping.SessionDtoToSession(
+      room,
+      movie,
+      init,
+      finish,
     );
+
     await this.sessionRepository.update(session, editSession);
   }
 
@@ -84,16 +77,16 @@ export class SessionService {
   }
 
   private async searchSalaAndFilme(salaId: number, filmeId: number) {
-    const sala = await this.roomRepository.findOne(salaId);
-    if (!sala) throw new NotFoundError('Sala não encontrada');
-    const filme = await this.movieRepository.findOne(filmeId);
-    if (!filme) throw new NotFoundError('Filme não encontrado');
+    const room = await this.roomRepository.findOne(salaId);
+    if (!room) throw new NotFoundError('Sala não encontrada');
+    const movie = await this.movieRepository.findOne(filmeId);
+    if (!movie) throw new NotFoundError('Filme não encontrado');
 
-    return { sala, filme };
+    return { room, movie };
   }
 
   private validateDateHourSession(
-    sessions: Session[],
+    sessions: SessionInitFinish[],
     init: Date,
     tempoFilme: number,
   ) {
@@ -131,21 +124,22 @@ export class SessionService {
       );
   }
 
-  private async searchRoomInSessions(room: Room, id?: number) {
-    const sessions = await this.sessionRepository.findRoomInSessions(room);
-    if (id) {
-      const sessionsEdit: Session[] = [];
-      sessions.forEach((session) => {
-        if (session.id != id) sessionsEdit.push(session);
-      });
-      return sessionsEdit;
-    } else return sessions;
+  private async searchRoomInSessions(roomId: number, id?: number) {
+    const sessions = await this.sessionRepository.findRoomInSessions(roomId);
+    const sessionsEdit: SessionInitFinish[] = [];
+    sessions.forEach((session) => {
+      if (!id && session.id != id) {
+        const sessionInitFinish =
+          this.mapping.SessionToSessionInitFinish(session);
+        sessionsEdit.push(sessionInitFinish);
+      }
+    });
+    return sessionsEdit;
   }
 
-  private async validateUpdate(session: Session) {
-    const maintenance = new Date(session.finish.getTime() + 1800 * 1000);
-    if (session.finish <= session.init && maintenance >= session.init)
-      throw new BadRequestError('Sala em manutenção não pode ser atualizada');
+  private async validateUpdate(finish: Date) {
+    const today = new Date();
+    if (finish <= today) throw new BadRequestError('Sessão que finalizada');
   }
 
   private convertToDate(date: string) {

@@ -10,8 +10,7 @@ import {
   UseFilters,
 } from '@nestjs/common';
 import { TagService } from '../service/tag.service';
-import { CreateTagDto } from '../dto/create-tag.dto';
-import { UpdateTagDto } from '../dto/update-tag.dto';
+import { TagDto } from '../dto/tag.dto';
 import { JwtGuard } from '../../auth/guard/jwt.guard';
 import { BadRequestFilter } from 'src/http-excepitions/bad-request.filter';
 import { NotFoundFilter } from 'src/http-excepitions/not-found.filter';
@@ -23,8 +22,8 @@ export class TagController {
   constructor(private readonly tagService: TagService) {}
 
   @Post()
-  create(@Body() createTagDto: CreateTagDto) {
-    return this.tagService.create(createTagDto);
+  create(@Body() tagDto: TagDto) {
+    return this.tagService.create(tagDto);
   }
 
   @Get()
@@ -33,17 +32,17 @@ export class TagController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tagService.findOne(+id);
+  findOne(@Param('id') id: number) {
+    return this.tagService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTagDto: UpdateTagDto) {
-    return this.tagService.update(+id, updateTagDto);
+  update(@Param('id') id: number, @Body() tagDto: TagDto) {
+    return this.tagService.update(id, tagDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tagService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.tagService.remove(id);
   }
 }

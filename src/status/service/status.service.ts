@@ -3,8 +3,8 @@ import { SessionRepository } from '../../shared/repositorys/session-repository';
 import { RoomRepository } from '../../shared/repositorys/room-repository';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { StatusRoomEnum } from '../../rooms/enum/status-room.enum';
-import { StatusSessionEnum } from '../../session/enum/status-session.enum';
-import { Session } from '../../session/entities/session.entity';
+import { StatusSessionEnum } from '../../sessions/enum/status-session.enum';
+import { Session } from 'src/shared/entities/session.entity';
 
 @Injectable()
 export class StatusService {
@@ -30,20 +30,26 @@ export class StatusService {
     if (
       session.init <= today &&
       session.finish >= today &&
-      session.sala.status != StatusRoomEnum.RUN
+      session.room.status != StatusRoomEnum.RUN
     )
-      await this.roomRepository.update(session.sala, StatusRoomEnum.RUN);
+      await this.roomRepository.updateStatus(
+        session.room.id,
+        StatusRoomEnum.RUN,
+      );
     else if (
       session.finish <= today &&
       maintenance >= today &&
-      session.sala.status != StatusRoomEnum.MAINTENANCE
+      session.room.status != StatusRoomEnum.MAINTENANCE
     )
-      await this.roomRepository.update(
-        session.sala,
+      await this.roomRepository.updateStatus(
+        session.room.id,
         StatusRoomEnum.MAINTENANCE,
       );
-    else if (session.sala.status != StatusRoomEnum.FREE)
-      await this.roomRepository.update(session.sala, StatusRoomEnum.FREE);
+    else if (session.room.status != StatusRoomEnum.FREE)
+      await this.roomRepository.updateStatus(
+        session.room.id,
+        StatusRoomEnum.FREE,
+      );
   }
 
   async updateSession(session: Session) {
