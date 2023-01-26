@@ -14,7 +14,7 @@ export class MovieSessionsService {
     const movieSessions: MovieSessions[] = [];
     for (let i = 0; i < sessions.length; i++) {
       const index = movieSessions.findIndex(
-        (movieSession) => movieSession.filme.id == sessions[i].movie.id,
+        (movieSession) => movieSession.movie.id == sessions[i].movie.id,
       );
       const initsession = new Date(sessions[i].init);
       const diff = (today.getTime() - initsession.getTime()) / oneDay;
@@ -22,17 +22,18 @@ export class MovieSessionsService {
         const session: SessionType = {
           sessionId: sessions[i].id,
           roomId: sessions[i].room.id,
+          roomName: sessions[i].room.name,
           init: sessions[i].init,
           finish: sessions[i].finish,
           status: sessions[i].status,
         };
         if (index >= 0) {
-          movieSessions[index].sessoes.push(session);
+          movieSessions[index].sessions.push(session);
         } else {
           const movieSession = new MovieSessions();
-          movieSession.filme = sessions[i].movie;
-          movieSession.sessoes = [];
-          movieSession.sessoes.push(session);
+          movieSession.movie = sessions[i].movie;
+          movieSession.sessions = [];
+          movieSession.sessions.push(session);
           movieSessions.push(movieSession);
         }
       }

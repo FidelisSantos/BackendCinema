@@ -6,14 +6,14 @@ export class SessionDto {
     { allowNaN: false, allowInfinity: false },
     { message: 'Campo sala inválido' },
   )
-  salaId: number;
+  roomId: number;
 
   @IsNotEmpty({ message: 'Campo sala obrigatório' })
   @IsNumber(
     { allowNaN: false, allowInfinity: false },
     { message: 'Campo sala inválido' },
   )
-  filmeId: number;
+  movieId: number;
 
   @IsNotEmpty({ message: 'Campo inicio obrigatório' })
   init: string;

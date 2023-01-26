@@ -15,7 +15,7 @@ import { JwtGuard } from '../../auth/guard/jwt.guard';
 import { BadRequestFilter } from 'src/http-excepitions/bad-request.filter';
 import { NotFoundFilter } from 'src/http-excepitions/not-found.filter';
 
-//@UseGuards(JwtGuard)
+@UseGuards(JwtGuard)
 @UseFilters(BadRequestFilter, NotFoundFilter)
 @Controller('tags')
 export class TagController {

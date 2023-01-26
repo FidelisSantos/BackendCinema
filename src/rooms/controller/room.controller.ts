@@ -15,7 +15,7 @@ import { BadRequestFilter } from '../../http-excepitions/bad-request.filter';
 import { NotFoundFilter } from 'src/http-excepitions/not-found.filter';
 import { RoomDto } from '../dto/room.dto';
 import { ConflictFilter } from 'src/http-excepitions/conflict.filter';
-//@UseGuards(JwtGuard)
+@UseGuards(JwtGuard)
 @UseFilters(BadRequestFilter, NotFoundFilter, ConflictFilter)
 @Controller('sala')
 export class RoomController {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { SessionDto } from '../dto/session.dto';
 import { MovieRepository } from '../../shared/repositorys/movie-repository';
 import { RoomRepository } from '../../shared/repositorys/room-repository';
@@ -21,8 +21,8 @@ export class SessionService {
     const init = this.convertToDate(sessionDto.init);
     this.validateInit(init);
     const { room, movie } = await this.searchSalaAndFilme(
-      sessionDto.salaId,
-      sessionDto.filmeId,
+      sessionDto.roomId,
+      sessionDto.movieId,
     );
     const finish = new Date(init.getTime() + movie.movieTime * 60000);
     const sessions = await this.searchRoomInSessions(room.id);
@@ -50,12 +50,18 @@ export class SessionService {
     this.validateInit(init);
     this.validateUpdate(session.finish);
     const { room, movie } = await this.searchSalaAndFilme(
-      sessionDto.salaId,
-      sessionDto.filmeId,
+      sessionDto.roomId,
+      sessionDto.movieId,
     );
     const sessions = await this.searchRoomInSessions(room.id, id);
+    console.log(sessions);
     if (sessions.length) {
-      this.validateDateHourSession(sessions, init, movie.movieTime);
+      const teste = this.validateDateHourSession(
+        sessions,
+        init,
+        movie.movieTime,
+      );
+      console.log(teste);
     }
     const finish = new Date(init.getTime() + movie.movieTime * 60000);
     const editSession = this.mapping.SessionDtoToSession(
@@ -109,7 +115,11 @@ export class SessionService {
     const timeNow = new Date(Date.now());
     let timeSession = init.getHours();
     if (timeSession === 0) {
-      timeSession = 24;
+      timeSession = 21;
+    } else if (timeSession === 1) {
+      timeSession = 22;
+    } else {
+      timeSession = timeSession - 3;
     }
     if (init < timeNow)
       throw new BadRequestError('Data/Hora de inicio inválida');
@@ -118,7 +128,7 @@ export class SessionService {
       throw new BadRequestError(
         'Sessão tem que ser cadastrada um dia antes no mínimo',
       );
-    if (timeSession - 3 < 10 || timeSession - 3 >= 23)
+    if (timeSession < 10 || timeSession >= 23)
       throw new BadRequestError(
         'O inicio da sessão tem que ser cadastrado entre as 10:00h e 22:59h',
       );
@@ -128,7 +138,7 @@ export class SessionService {
     const sessions = await this.sessionRepository.findRoomInSessions(roomId);
     const sessionsEdit: SessionInitFinish[] = [];
     sessions.forEach((session) => {
-      if (!id && session.id != id) {
+      if (!id || session.id != id) {
         const sessionInitFinish =
           this.mapping.SessionToSessionInitFinish(session);
         sessionsEdit.push(sessionInitFinish);
@@ -137,9 +147,10 @@ export class SessionService {
     return sessionsEdit;
   }
 
-  private async validateUpdate(finish: Date) {
+  private validateUpdate(finish: Date) {
     const today = new Date();
-    if (finish <= today) throw new BadRequestError('Sessão que finalizada');
+    if (finish <= today)
+      throw new BadRequestError('Sessão finzalida não pode ser editada');
   }
 
   private convertToDate(date: string) {

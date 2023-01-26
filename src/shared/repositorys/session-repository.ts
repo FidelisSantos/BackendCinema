@@ -29,7 +29,7 @@ export class SessionRepository {
   }
 
   async findOne(id: number) {
-    return await this.sessaoRepository.findOneBy({ id });
+    return await this.sessaoRepository.findOneBy({ id: id });
   }
 
   async useMovie(movieId: number) {

@@ -54,7 +54,7 @@ export class StatusService {
 
   async updateSession(session: Session) {
     const today = new Date(Date.now());
-    if (session.init <= today && session.status != StatusSessionEnum.WAITING)
+    if (session.init >= today && session.status != StatusSessionEnum.WAITING)
       await this.sessionRepository.updateStatus(
         session,
         StatusSessionEnum.WAITING,
@@ -64,11 +64,8 @@ export class StatusService {
       session.finish >= today &&
       session.status != StatusSessionEnum.RUN
     )
-      await this.sessionRepository.updateStatus(
-        session,
-        StatusSessionEnum.WAITING,
-      );
-    else if (session.finish >= today)
+      await this.sessionRepository.updateStatus(session, StatusSessionEnum.RUN);
+    else if (session.finish <= today)
       await this.sessionRepository.updateStatus(
         session,
         StatusSessionEnum.FINISH,
