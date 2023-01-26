@@ -14,9 +14,10 @@ import { MovieDto } from '../dto/movie.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { BadRequestFilter } from 'src/http-excepitions/bad-request.filter';
 import { NotFoundFilter } from 'src/http-excepitions/not-found.filter';
+import { ConflictFilter } from '../../http-excepitions/conflict.filter';
 
 @UseGuards(JwtGuard)
-@UseFilters(BadRequestFilter, NotFoundFilter)
+@UseFilters(BadRequestFilter, NotFoundFilter, ConflictFilter)
 @Controller('filme')
 export class FilmeController {
   constructor(private readonly movieService: MovieService) {}

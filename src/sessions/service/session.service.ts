@@ -1,4 +1,4 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { SessionDto } from '../dto/session.dto';
 import { MovieRepository } from '../../shared/repositorys/movie-repository';
 import { RoomRepository } from '../../shared/repositorys/room-repository';
@@ -7,6 +7,7 @@ import { NotFoundError } from '../../errors/not-found.error';
 import { SessionRepository } from '../../shared/repositorys/session-repository';
 import { MappingService } from 'src/shared/mapping/mapping.service';
 import { SessionInitFinish } from '../types/session-init-finish';
+import { ConflictError } from '../../errors/conflict.error';
 
 @Injectable()
 export class SessionService {
@@ -54,14 +55,8 @@ export class SessionService {
       sessionDto.movieId,
     );
     const sessions = await this.searchRoomInSessions(room.id, id);
-    console.log(sessions);
     if (sessions.length) {
-      const teste = this.validateDateHourSession(
-        sessions,
-        init,
-        movie.movieTime,
-      );
-      console.log(teste);
+      this.validateDateHourSession(sessions, init, movie.movieTime);
     }
     const finish = new Date(init.getTime() + movie.movieTime * 60000);
     const editSession = this.mapping.SessionDtoToSession(
@@ -107,7 +102,7 @@ export class SessionService {
         (init >= initSessao && init <= finishSessao) ||
         (maintenance >= initSessao && maintenance <= finishSessao)
       )
-        throw new BadRequestError('Conflito com sessão já cadastrada');
+        throw new ConflictError('Conflito com sessão já cadastrada');
     }
   }
 
