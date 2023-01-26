@@ -145,7 +145,7 @@ export class SessionService {
   private validateUpdate(finish: Date) {
     const today = new Date();
     if (finish <= today)
-      throw new BadRequestError('Sessão finzalida não pode ser editada');
+      throw new BadRequestError('Sessão finalizada não pode ser editada');
   }
 
   private convertToDate(date: string) {
